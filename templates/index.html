@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聊天室</title>
+    <style>
+        /* ========================================
+           Pixel Style - 像素风 (来自 样式.txt)
+           ======================================== */
+        :root {
+            --pixel-bg-main: #29adff;
+            --pixel-bg-panel: #1d2b53;
+            --pixel-text-primary: #fff1e8;
+            --pixel-text-secondary: #c2c3c7;
+            --pixel-border: #000000;
+            --pixel-shadow: rgba(0, 0, 0, 0.5);
+            --pixel-acc-primary: #ffccaa;
+            --pixel-acc-secondary: #ff004d;
+            --pixel-btn-bg: #00e436;
+            --pixel-btn-text: #1d2b53;
+            --pixel-success: #00e436;
+            --pixel-warning: #ffa300;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--pixel-bg-main);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* 主面板 */
+        .pixel-panel {
+            background-color: var(--pixel-bg-panel);
+            color: var(--pixel-text-primary);
+            border: 4px solid var(--pixel-border);
+            box-shadow: 10px 10px 0px var(--pixel-shadow);
+            padding: 25px;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid var(--pixel-border);
+            margin-bottom: 20px;
+        }
+
+        .navbar h1 {
+            font-size: 20px;
+            color: var(--pixel-acc-primary);
+            text-transform: uppercase;
+        }
+
+        .navbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .navbar .user-info span {
+            font-size: 12px;
+            color: var(--pixel-text-secondary);
+        }
+
+        .logout-btn {
+            background-color: var(--pixel-acc-secondary);
+            color: var(--pixel-text-primary);
+            border: 2px solid var(--pixel-border);
+            padding: 6px 15px;
+            font-size: 11px;
+            text-decoration: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .logout-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* 消息提示 */
+        .pixel-message {
+            padding: 10px;
+            border: 2px solid var(--pixel-border);
+            margin-bottom: 15px;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .pixel-message.error {
+            background: var(--pixel-acc-secondary);
+            color: var(--pixel-text-primary);
+        }
+
+        .pixel-message.success {
+            background: var(--pixel-success);
+            color: var(--pixel-btn-text);
+        }
+
+        .pixel-message.warning {
+            background: var(--pixel-warning);
+            color: var(--pixel-btn-text);
+        }
+
+        .pixel-message.info {
+            background: var(--pixel-bg-main);
+            color: var(--pixel-text-primary);
+        }
+
+        /* 聊天布局 */
+        .chat-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+        }
+
+        /* 聊天主区域 */
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 520px;
+        }
+
+        /* 房间切换 */
+        .room-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .room-tab {
+            flex: 1;
+            padding: 10px 15px;
+            background-color: var(--pixel-bg-main);
+            color: var(--pixel-text-primary);
+            border: 3px solid var(--pixel-border);
+            font-size: 12px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            box-shadow: inset -2px -2px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .room-tab.active {
+            background-color: var(--pixel-acc-primary);
+            color: var(--pixel-bg-panel);
+            box-shadow: inset 2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 消息区域 */
+        .chat-messages {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            border: 3px solid var(--pixel-border);
+            padding: 15px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: var(--pixel-bg-panel);
+            border: 2px solid var(--pixel-border);
+        }
+
+        .chat-message .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .chat-message .username {
+            color: var(--pixel-acc-primary);
+            font-weight: bold;
+        }
+
+        .chat-message .time {
+            color: var(--pixel-text-secondary);
+        }
+
+        .chat-message .text {
+            color: var(--pixel-text-primary);
+            line-height: 1.5;
+            word-break: break-word;
+            font-size: 13px;
+        }
+
+        /* 输入区域 */
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .anonymous-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: var(--pixel-text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .anonymous-label input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+            accent-color: var(--pixel-btn-bg);
+        }
+
+        .chat-input-area textarea {
+            flex: 1;
+            padding: 10px;
+            background: var(--pixel-bg-main);
+            border: 2px solid var(--pixel-border);
+            color: var(--pixel-text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            resize: none;
+            height: 45px;
+        }
+
+        .chat-input-area textarea:focus {
+            outline: none;
+            border-color: var(--pixel-acc-primary);
+        }
+
+        .send-btn {
+            background-color: var(--pixel-btn-bg);
+            color: var(--pixel-btn-text);
+            border: 3px solid var(--pixel-border);
+            padding: 10px 25px;
+            font-size: 12px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            box-shadow: inset -2px -2px 0px 0px rgba(0, 0, 0, 0.3);
+        }
+
+        .send-btn:active {
+            box-shadow: inset 2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+            transform: translate(2px, 2px);
+        }
+
+        /* 小票容器 */
+        .receipt-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .receipt-title {
+            font-size: 12px;
+            color: var(--pixel-text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .receipt-wrapper {
+            width: 100%;
+            height: 500px;
+            border: 3px solid var(--pixel-border);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        #receipt-canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .receipt-ui-layer {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--pixel-bg-panel);
+            border: 2px solid var(--pixel-border);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--pixel-acc-primary);
+            border: 2px solid var(--pixel-border);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--pixel-btn-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pixel-panel">
+            <nav class="navbar">
+                <h1>💬 聊天室</h1>
+                <div class="user-info">
+                    <span>欢迎，{{ username }}</span>
+                    <a href="/logout" class="logout-btn">退出</a>
+                </div>
+            </nav>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="pixel-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="chat-layout">
+                <div class="chat-main">
+                    <div class="room-tabs">
+                        <button class="room-tab active" data-room="general">🏠 公共频道</button>
+                        <button class="room-tab" data-room="study">📚 学习交流</button>
+                        <button class="room-tab" data-room="random">💧 水聊专区</button>
+                    </div>
+
+                    <div class="chat-messages" id="chat-messages">
+                        {% for msg in messages %}
+                        <div class="chat-message" data-room="general">
+                            <div class="meta">
+                                <span class="username">{{ msg.username }}</span>
+                                <span class="time">{{ msg.timestamp.strftime('%H:%M:%S') }}</span>
+                            </div>
+                            <div class="text">{{ msg.message }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="chat-input-area">
+                        <label class="anonymous-label">
+                            <input type="checkbox" id="anonymous-toggle">
+                            匿名发言
+                        </label>
+                        <textarea id="message-input" placeholder="输入消息..."></textarea>
+                        <button class="send-btn" id="send-btn">发送</button>
+                    </div>
+                </div>
+
+                <div class="receipt-container">
+                    <div class="receipt-title">📊 实时统计</div>
+                    <div class="receipt-wrapper" id="receipt-wrapper">
+                        <div id="receipt-canvas-container"></div>
+                        <div class="receipt-ui-layer">🖱️ 悬浮：扰动 | ✋ 拖拽：拉扯</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="online-count-display" style="display:none">{{ online_users|length }}</div>
+    <div id="message-count-display" style="display:none">{{ messages|length }}</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // ==========================================
+        // 聊天室功能模块
+        // ==========================================
+        const ChatApp = {
+            socket: null,
+            currentRoom: 'general',
+            elements: {},
+
+            init() {
+                this.cacheElements();
+                this.initSocket();
+                this.bindEvents();
+                this.loadMessages();
+            },
+
+            cacheElements() {
+                this.elements = {
+                    messages: document.getElementById('chat-messages'),
+                    input: document.getElementById('message-input'),
+                    sendBtn: document.getElementById('send-btn'),
+                    anonymous: document.getElementById('anonymous-toggle'),
+                    roomTabs: document.querySelectorAll('.room-tab')
+                };
+            },
+
+            initSocket() {
+                this.socket = io();
+
+                this.socket.on('receive_message', (data) => this.handleNewMessage(data));
+                this.socket.on('receive_messages', (msgs) => this.handleLoadMessages(msgs));
+            },
+
+            bindEvents() {
+                // 房间切换
+                this.elements.roomTabs.forEach(tab => {
+                    tab.addEventListener('click', () => this.switchRoom(tab.dataset.room));
+                });
+
+                // 发送按钮
+                this.elements.sendBtn.addEventListener('click', () => this.sendMessage());
+
+                // Enter 发送
+                this.elements.input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            },
+
+            switchRoom(room) {
+                this.currentRoom = room;
+
+                // 更新标签样式
+                this.elements.roomTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.room === room);
+                });
+
+                // 过滤显示对应房间的消息
+                const allMessages = this.elements.messages.querySelectorAll('.chat-message');
+                allMessages.forEach(msg => {
+                    msg.style.display = (msg.dataset.room === room || !msg.dataset.room) ? 'block' : 'none';
+                });
+
+                // 通知服务器加入房间
+                this.socket.emit('join_room', { room: room });
+
+                // 加载该房间的历史消息
+                this.socket.emit('get_room_messages', { room: room });
+            },
+
+            sendMessage() {
+                const message = this.elements.input.value.trim();
+                if (!message) return;
+
+                this.socket.emit('send_message', {
+                    message: message,
+                    anonymous: this.elements.anonymous.checked,
+                    room: this.currentRoom
+                });
+
+                this.elements.input.value = '';
+            },
+
+            handleNewMessage(data) {
+                const msgEl = this.createMessageElement(data);
+                this.elements.messages.appendChild(msgEl);
+                this.elements.messages.scrollTop = this.elements.messages.scrollHeight;
+            },
+
+            handleLoadMessages(msgs) {
+                this.elements.messages.innerHTML = '';
+                msgs.forEach(msg => {
+                    const msgEl = this.createMessageElement(msg);
+                    this.elements.messages.appendChild(msgEl);
+                });
+                this.elements.messages.scrollTop = this.elements.messages.scrollHeight;
+            },
+
+            createMessageElement(data) {
+                const el = document.createElement('div');
+                el.className = 'chat-message';
+                el.dataset.room = data.room || 'general';
+                el.innerHTML = `
+                    <div class="meta">
+                        <span class="username">${this.escapeHtml(data.username)}</span>
+                        <span class="time">${this.escapeHtml(data.timestamp)}</span>
+                    </div>
+                    <div class="text">${this.escapeHtml(data.message)}</div>
+                `;
+                return el;
+            },
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            },
+
+            loadMessages() {
+                setTimeout(() => {
+                    this.socket.emit('get_messages');
+                }, 300);
+            }
+        };
+
+        // ==========================================
+        // 3D 小票模块 - 完整物理效果
+        // ==========================================
+        const ReceiptApp = {
+            currentOnline: 0,
+            currentMessages: 0,
+            particles: [],
+            constraints: [],
+            mesh: null,
+            geometry: null,
+            material: null,
+            draggedParticle: null,
+            isHovering: false,
+            hoverPos: null,
+            targetDragPos: null,
+            currentDragPos: null,
+            scene: null,
+            camera: null,
+            renderer: null,
+
+            init(onlineCount, messageCount) {
+                this.currentOnline = onlineCount;
+                this.currentMessages = messageCount;
+                this.targetDragPos = new THREE.Vector3();
+                this.currentDragPos = new THREE.Vector3();
+                this.create3DScene();
+                this.startUpdates();
+            },
+
+            create3DScene() {
+                const container = document.getElementById('receipt-canvas-container');
+                const SEGS_X = 12, SEGS_Y = 24;
+                const PAPER_WIDTH = 220, PAPER_HEIGHT = 480;
+
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 3000);
+                this.camera.position.set(0, 0, 600);
+
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(this.renderer.domElement);
+
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(200, 300, 400);
+                dirLight.castShadow = true;
+                this.scene.add(dirLight);
+
+                // 添加阴影平面
+                const shadowGeo = new THREE.PlaneGeometry(PAPER_WIDTH * 1.2, PAPER_HEIGHT * 1.2);
+                const shadowMat = new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+                const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+                shadowPlane.position.y = -20;
+                shadowPlane.position.z = -30;
+                this.scene.add(shadowPlane);
+
+                this.material = new THREE.MeshStandardMaterial({
+                    map: this.createTexture(this.currentOnline, this.currentMessages),
+                    side: THREE.DoubleSide,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                this.geometry = new THREE.PlaneGeometry(PAPER_WIDTH, PAPER_HEIGHT, SEGS_X, SEGS_Y);
+                this.mesh = new THREE.Mesh(this.geometry, this.material);
+                this.mesh.position.y = 50;
+                this.scene.add(this.mesh);
+
+                // 创建物理粒子
+                this.particles = [];
+                for (let y = 0; y <= SEGS_Y; y++) {
+                    for (let x = 0; x <= SEGS_X; x++) {
+                        const px = (x / SEGS_X - 0.5) * PAPER_WIDTH;
+                        const py = (1 - y / SEGS_Y) * PAPER_HEIGHT - PAPER_HEIGHT / 2;
+                        this.particles.push({
+                            position: new THREE.Vector3(px, py, 0),
+                            previous: new THREE.Vector3(px, py, 0),
+                            original: new THREE.Vector3(px, py, 0),
+                            isPinned: y === 0,
+                            isDragged: false
+                        });
+                    }
+                }
+
+                // 创建约束
+                this.constraints = [];
+                const idx = (x, y) => x + y * (SEGS_X + 1);
+                for (let y = 0; y <= SEGS_Y; y++) {
+                    for (let x = 0; x <= SEGS_X; x++) {
+                        if (x < SEGS_X) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y)], dist: PAPER_WIDTH/SEGS_X });
+                        if (y < SEGS_Y) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x,y+1)], dist: PAPER_HEIGHT/SEGS_Y });
+                        if (x < SEGS_X && y < SEGS_Y) {
+                            const d = Math.hypot(PAPER_WIDTH/SEGS_X, PAPER_HEIGHT/SEGS_Y);
+                            this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y+1)], dist: d });
+                            this.constraints.push({ p1: this.particles[idx(x+1,y)], p2: this.particles[idx(x,y+1)], dist: d });
+                        }
+                    }
+                }
+
+                this.setupInteraction();
+
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    this.simulate();
+                    this.renderer.render(this.scene, this.camera);
+                };
+                animate();
+
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = container.clientWidth / container.clientHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(container.clientWidth, container.clientHeight);
+                });
+            },
+
+            createTexture(online, messages) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 1024;
+                const ctx = canvas.getContext('2d');
+
+                // 底色
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(0, 0, 512, 1024);
+
+                // 噪点
+                for (let i = 0; i < 3000; i++) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.03})`;
+                    ctx.fillRect(Math.random() * 512, Math.random() * 1024, 2, 2);
+                }
+
+                // 标题 - 大字体
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+
+                ctx.font = 'bold 56px monospace';
+                ctx.fillText('╔════════════════════════╗', 256, 70);
+
+                ctx.font = 'bold 48px monospace';
+                ctx.fillText('📊 实 时 统 计', 256, 140);
+
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, 190);
+
+                // 内容 - 大字体
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 32px monospace';
+
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('zh-CN');
+                const timeStr = now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
+
+                let y = 260;
+
+                // 日期时间
+                ctx.fillText('日  期', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(dateStr, 462, y);
+                y += 55;
+
+                ctx.textAlign = 'left';
+                ctx.fillText('时  间', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(timeStr, 462, y);
+                y += 55;
+
+                ctx.textAlign = 'center';
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
+                y += 50;
+
+                // 核心数据 - 超大字体
+                ctx.font = 'bold 42px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText('在 线 人 数', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#00aa00';
+                ctx.fillText(online + ' 人', 462, y);
+                y += 65;
+
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'left';
+                ctx.fillText('消 息 总 数', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#0066ff';
+                ctx.fillText(messages + ' 条', 462, y);
+                y += 65;
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000000';
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
+                y += 50;
+
+                // 底部
+                ctx.font = '24px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y + 80);
+                ctx.font = '20px monospace';
+                ctx.fillText('感 谢 使 用 聊 天 室！', 256, y + 115);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.anisotropy = 16;
+                return texture;
+            },
+
+            simulate() {
+                const time = performance.now() * 0.002;
+                const gravity = new THREE.Vector3(0, -600, 0);
+                const damping = 0.95;
+                const dt = 0.016;
+
+                // 应用物理
+                this.particles.forEach(p => {
+                    if (!p.isPinned && !p.isDragged) {
+                        // 重力
+                        p.position.add(gravity.clone().multiplyScalar(dt * dt));
+
+                        // 鼠标悬浮扰动 - 轻微
+                        if (this.isHovering && this.hoverPos) {
+                            const dist = p.position.distanceTo(this.hoverPos);
+                            if (dist < 50) {
+                                const intensity = (50 - dist) / 50;
+                                const pushDir = p.position.clone().sub(this.hoverPos).normalize();
+                                pushDir.z -= 0.5;
+                                pushDir.normalize();
+                                p.position.add(pushDir.multiplyScalar(intensity * 1));
+                            }
+                        }
+
+                        // Verlet 积分
+                        const velocity = p.position.clone().sub(p.previous).multiplyScalar(damping);
+                        p.previous.copy(p.position);
+                        p.position.add(velocity);
+                    }
+                });
+
+                // 约束求解
+                for (let i = 0; i < 5; i++) {
+                    this.constraints.forEach(c => {
+                        const diff = c.p2.position.clone().sub(c.p1.position);
+                        const dist = diff.length();
+                        if (dist === 0) return;
+                        const correction = (dist - c.dist) / dist;
+                        const halfCorr = diff.multiplyScalar(correction * 0.5);
+                        if (!c.p1.isPinned) c.p1.position.add(halfCorr);
+                        if (!c.p2.isPinned) c.p2.position.sub(halfCorr);
+                    });
+                }
+
+                // 更新网格顶点
+                const positions = this.geometry.attributes.position.array;
+                let idx = 0;
+                this.particles.forEach(p => {
+                    positions[idx++] = p.position.x;
+                    positions[idx++] = p.position.y;
+                    positions[idx++] = p.position.z;
+                });
+                this.geometry.attributes.position.needsUpdate = true;
+            },
+
+            setupInteraction() {
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+                let isMouseDown = false;
+
+                const getMousePos = (e) => {
+                    const rect = this.renderer.domElement.getBoundingClientRect();
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(mouse, this.camera);
+                };
+
+                this.renderer.domElement.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    getMousePos(e);
+                    const intersects = raycaster.intersectObject(this.mesh);
+                    if (intersects.length > 0) {
+                        const point = intersects[0].point.clone().sub(this.mesh.position);
+                        let minDst = Infinity;
+                        this.particles.forEach(p => {
+                            if (!p.isPinned) {
+                                const dst = p.position.distanceTo(point);
+                                if (dst < minDst) { minDst = dst; this.draggedParticle = p; }
+                            }
+                        });
+                        if (this.draggedParticle) {
+                            this.draggedParticle.isDragged = true;
+                        }
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mousemove', (e) => {
+                    getMousePos(e);
+
+                    if (isMouseDown && this.draggedParticle) {
+                        // 拖拽 - 放大移动距离
+                        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                        const target = new THREE.Vector3();
+                        raycaster.ray.intersectPlane(plane, target);
+                        this.draggedParticle.position.copy(target);
+                    } else {
+                        const intersects = raycaster.intersectObject(this.mesh);
+                        if (intersects.length > 0) {
+                            this.isHovering = true;
+                            this.hoverPos = intersects[0].point.clone().sub(this.mesh.position);
+                        } else {
+                            this.isHovering = false;
+                            this.hoverPos = null;
+                        }
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                    if (this.draggedParticle) {
+                        this.draggedParticle.isDragged = false;
+                        this.draggedParticle = null;
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mouseleave', () => {
+                    isMouseDown = false;
+                    this.isHovering = false;
+                    this.hoverPos = null;
+                    if (this.draggedParticle) {
+                        this.draggedParticle.isDragged = false;
+                        this.draggedParticle = null;
+                    }
+                });
+            },
+
+            updateTexture() {
+                if (this.material && this.material.map) {
+                    this.material.map.dispose();
+                }
+                this.material.map = this.createTexture(this.currentOnline, this.currentMessages);
+                this.material.needsUpdate = true;
+            },
+
+            startUpdates() {
+                // 定期更新
+                setInterval(() => {
+                    fetch(window.location.href)
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const onlineEl = doc.querySelector('#online-count-display');
+                            const msgEl = doc.querySelector('#message-count-display');
+
+                            const newOnline = onlineEl ? parseInt(onlineEl.textContent) || 0 : this.currentOnline;
+                            const newMsg = msgEl ? parseInt(msgEl.textContent) || 0 : this.currentMessages;
+
+                            if (newOnline !== this.currentOnline || newMsg !== this.currentMessages) {
+                                this.currentOnline = newOnline;
+                                this.currentMessages = newMsg;
+                                this.updateTexture();
+                            }
+                        })
+                        .catch(() => {});
+                }, 3000);
+
+                // 模拟消息增长
+                setInterval(() => {
+                    if (Math.random() > 0.6) {
+                        this.currentMessages++;
+                        this.updateTexture();
+                    }
+                }, 4000);
+            }
+        };
+
+        // ==========================================
+        // 初始化应用
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            ChatApp.init();
+            ReceiptApp.init(
+                parseInt("{{ online_users|length }}") || 0,
+                parseInt("{{ messages|length }}") || 0
+            );
+        });
+    </script>
+</body>
+</html>

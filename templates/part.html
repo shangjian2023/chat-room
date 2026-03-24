@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>3D 物理小票 - 扰动与放大拖拽版</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f5;
+            cursor: grab;
+        }
+        body:active {
+            cursor: grabbing;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+        #ui-layer {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-family: sans-serif;
+            color: #888;
+            pointer-events: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-layer">鼠标悬浮：产生风压扰动 | 鼠标拖拽：小幅移动即大幅拉扯</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // ==========================================
+        // 0. 自定义小票内容配置区
+        // ==========================================
+        const receiptData = {
+            header: "=== RENDER MART ===",
+            subHeader: "Order #404 - Engine Error",
+            items: [
+                { name: "1x Default Cube", price: "$0.00" },
+                { name: "1x PBR Shader", price: "$29.99" },
+                { name: "2x Gimbal Locks", price: "$FREE" },
+                { name: "1x Memory Leak", price: "$NaN" },
+                { name: "1x Missing Texture", price: "$404.00" },
+                { name: "1x Quaternions", price: "$??.??" },
+                { name: "3x NaN Values", price: "$0.00" }
+            ],
+            total: "$???",
+            footerMsg: "Thanks for rendering with us!"
+        };
+
+        // ==========================================
+        // 1. 生成热敏纸材质纹理
+        // ==========================================
+        function createReceiptTexture(data) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 1024;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#fdfcf0'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#222';
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 40px monospace';
+            ctx.fillText(data.header, 256, 80);
+            
+            ctx.font = '24px monospace';
+            ctx.fillText(data.subHeader, 256, 130);
+            
+            ctx.textAlign = 'left';
+            ctx.font = '22px monospace';
+            
+            let y = 220;
+            ctx.fillText('ITEM', 40, y);
+            ctx.fillText('PRICE', 400, y);
+            y += 20;
+            ctx.fillText('----------------------------------', 40, y);
+            
+            y += 40;
+            data.items.forEach(item => {
+                ctx.fillText(item.name, 40, y);
+                ctx.fillText(item.price, 400, y);
+                y += 40;
+            });
+
+            y += 20;
+            ctx.fillText('----------------------------------', 40, y);
+            y += 40;
+            ctx.font = 'bold 28px monospace';
+            ctx.fillText('TOTAL:', 40, y);
+            ctx.fillText(data.total, 400, y);
+
+            y += 80;
+            ctx.fillStyle = '#222';
+            for (let i = 0; i < 400; i += (Math.random() * 8 + 2)) {
+                let width = Math.random() * 4 + 1;
+                ctx.fillRect(56 + i, y, width, 80);
+            }
+
+            ctx.textAlign = 'center';
+            ctx.font = '18px monospace';
+            ctx.fillText(data.footerMsg, 256, y + 120);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = 16;
+            return texture;
+        }
+
+        // ==========================================
+        // 2. Verlet 物理引擎设置
+        // ==========================================
+        const DAMPING = 0.95; 
+        const TIMESTEP = 18 / 1000;
+        const TIMESTEP_SQ = TIMESTEP * TIMESTEP;
+        const GRAVITY = new THREE.Vector3(0, -900, 0); 
+
+        class Particle {
+            constructor(x, y, z, mass) {
+                this.position = new THREE.Vector3(x, y, z);
+                this.previous = new THREE.Vector3(x, y, z);
+                this.original = new THREE.Vector3(x, y, z);
+                this.mass = mass;
+                this.invMass = 1 / mass;
+                this.isPinned = false;
+                this.isDragged = false;
+            }
+            addForce(force) {
+                this.position.add(force.clone().multiplyScalar(TIMESTEP_SQ * this.invMass));
+            }
+            integrate() {
+                if (this.isPinned) return;
+                const velocity = this.position.clone().sub(this.previous).multiplyScalar(DAMPING);
+                this.previous.copy(this.position);
+                this.position.add(velocity);
+            }
+        }
+
+        class Constraint {
+            constructor(p1, p2, distance) {
+                this.p1 = p1;
+                this.p2 = p2;
+                this.distance = distance;
+            }
+            resolve() {
+                const diff = new THREE.Vector3().subVectors(this.p2.position, this.p1.position);
+                const currentDist = diff.length();
+                if (currentDist === 0) return;
+                
+                const correction = (currentDist - this.distance) / currentDist;
+                const halfCorrection = diff.multiplyScalar(correction * 0.5);
+
+                if (!this.p1.isPinned) this.p1.position.add(halfCorrection);
+                if (!this.p2.isPinned) this.p2.position.sub(halfCorrection);
+            }
+        }
+
+        // ==========================================
+        // 3. 构建纸张网格
+        // ==========================================
+        const PAPER_WIDTH = 250;
+        const PAPER_HEIGHT = 500;
+        const SEGS_X = 12; 
+        const SEGS_Y = 24;
+
+        const particles = [];
+        const constraints = [];
+
+        for (let y = 0; y <= SEGS_Y; y++) {
+            for (let x = 0; x <= SEGS_X; x++) {
+                const px = (x / SEGS_X - 0.5) * PAPER_WIDTH;
+                const py = (1 - y / SEGS_Y) * PAPER_HEIGHT - (PAPER_HEIGHT/2);
+                const particle = new Particle(px, py, 0, 1);
+                
+                if (y === 0) particle.isPinned = true;
+                particles.push(particle);
+            }
+        }
+
+        const index = (x, y) => x + y * (SEGS_X + 1);
+
+        for (let y = 0; y <= SEGS_Y; y++) {
+            for (let x = 0; x <= SEGS_X; x++) {
+                if (x < SEGS_X) constraints.push(new Constraint(particles[index(x, y)], particles[index(x + 1, y)], PAPER_WIDTH / SEGS_X));
+                if (y < SEGS_Y) constraints.push(new Constraint(particles[index(x, y)], particles[index(x, y + 1)], PAPER_HEIGHT / SEGS_Y));
+                
+                if (x < SEGS_X && y < SEGS_Y) {
+                    constraints.push(new Constraint(particles[index(x, y)], particles[index(x + 1, y + 1)], Math.hypot(PAPER_WIDTH/SEGS_X, PAPER_HEIGHT/SEGS_Y)));
+                    constraints.push(new Constraint(particles[index(x + 1, y)], particles[index(x, y + 1)], Math.hypot(PAPER_WIDTH/SEGS_X, PAPER_HEIGHT/SEGS_Y)));
+                }
+
+                if (x < SEGS_X - 1) constraints.push(new Constraint(particles[index(x, y)], particles[index(x + 2, y)], (PAPER_WIDTH / SEGS_X) * 2));
+                if (y < SEGS_Y - 1) constraints.push(new Constraint(particles[index(x, y)], particles[index(x, y + 2)], (PAPER_HEIGHT / SEGS_Y) * 2));
+            }
+        }
+
+        // ==========================================
+        // 4. Three.js 场景渲染设置
+        // ==========================================
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 3000);
+        camera.position.set(0, 0, 800);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        dirLight.position.set(200, 300, 400);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+
+        const wallGeo = new THREE.PlaneGeometry(3000, 3000);
+        const wallMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+        const wall = new THREE.Mesh(wallGeo, wallMat);
+        wall.position.z = -150;
+        wall.receiveShadow = true;
+        scene.add(wall);
+
+        const paperGeometry = new THREE.PlaneGeometry(PAPER_WIDTH, PAPER_HEIGHT, SEGS_X, SEGS_Y);
+        const paperMaterial = new THREE.MeshStandardMaterial({
+            map: createReceiptTexture(receiptData),
+            side: THREE.DoubleSide,
+            roughness: 0.7,
+            metalness: 0.05,
+            color: 0xffffff
+        });
+
+        const paperMesh = new THREE.Mesh(paperGeometry, paperMaterial);
+        paperMesh.castShadow = true;
+        paperMesh.position.y = 100;
+        scene.add(paperMesh);
+
+        // ==========================================
+        // 5. 交互逻辑 (引入扰动检测与位移放大)
+        // ==========================================
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        // 拖拽相关
+        let draggedParticle = null;
+        let dragPlane = new THREE.Plane();
+        let targetDragPos = new THREE.Vector3();
+        let currentDragPos = new THREE.Vector3();
+        
+        // 新增：放大器与基准点记录
+        const DRAG_AMPLIFIER = 2.5; // 位移放大倍数：数值越大，鼠标移动越省力
+        let initialMousePos = new THREE.Vector3();
+        let initialParticlePos = new THREE.Vector3();
+
+        // 新增：悬浮扰动相关
+        let isHovering = false;
+        let hoverPos = new THREE.Vector3();
+
+        function updateRaycaster(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+        }
+
+        window.addEventListener('mousedown', (e) => {
+            updateRaycaster(e);
+            const intersects = raycaster.intersectObject(paperMesh);
+            
+            if (intersects.length > 0) {
+                const intersectPoint = intersects[0].point.clone().sub(paperMesh.position);
+                let minDist = Infinity;
+                
+                particles.forEach(p => {
+                    if (p.isPinned) return; 
+                    const dist = p.position.distanceTo(intersectPoint);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        draggedParticle = p;
+                    }
+                });
+
+                if (draggedParticle) {
+                    dragPlane.setFromNormalAndCoplanarPoint(
+                        camera.getWorldDirection(new THREE.Vector3()), 
+                        intersects[0].point
+                    );
+                    
+                    // 获取投射平面的初始原点
+                    const rawStartPoint = new THREE.Vector3();
+                    raycaster.ray.intersectPlane(dragPlane, rawStartPoint);
+                    rawStartPoint.sub(paperMesh.position);
+                    
+                    // 记录初始基准状态
+                    initialMousePos.copy(rawStartPoint);
+                    initialParticlePos.copy(draggedParticle.position);
+                    
+                    targetDragPos.copy(initialParticlePos);
+                    currentDragPos.copy(initialParticlePos);
+                    draggedParticle.isDragged = true;
+                }
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            updateRaycaster(e);
+            
+            if (draggedParticle) {
+                // 拖拽模式：放大位移
+                const rawCurrentPoint = new THREE.Vector3();
+                raycaster.ray.intersectPlane(dragPlane, rawCurrentPoint);
+                rawCurrentPoint.sub(paperMesh.position);
+                
+                // 计算鼠标真实移动的向量，并乘以放大系数
+                const mouseDelta = rawCurrentPoint.sub(initialMousePos).multiplyScalar(DRAG_AMPLIFIER);
+                
+                // 目标位置 = 粒子初始位置 + 放大的鼠标位移向量
+                targetDragPos.copy(initialParticlePos).add(mouseDelta);
+                isHovering = false;
+            } else {
+                // 悬浮模式：检测光标位置用于扰动
+                const intersects = raycaster.intersectObject(paperMesh);
+                if (intersects.length > 0) {
+                    isHovering = true;
+                    hoverPos.copy(intersects[0].point).sub(paperMesh.position);
+                } else {
+                    isHovering = false;
+                }
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (draggedParticle) {
+                draggedParticle.isDragged = false;
+                draggedParticle = null;
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ==========================================
+        // 6. 物理引擎循环
+        // ==========================================
+        const positions = paperGeometry.attributes.position.array;
+
+        function simulate() {
+            const time = performance.now() * 0.003;
+
+            // 1. 积分与力场
+            particles.forEach(p => {
+                if (!p.isPinned && !p.isDragged) {
+                    p.addForce(GRAVITY);
+                    
+                    // 基础风力
+                    const windForceZ = Math.sin(time + p.original.y * 0.02) * 200;
+                    const windForceX = Math.cos(time * 0.8 + p.original.y * 0.01) * 60;
+                    p.addForce(new THREE.Vector3(windForceX, 0, windForceZ));
+
+                    // 新增：光标悬浮扰动力场 (排斥效应)
+                    if (isHovering) {
+                        const dist = p.position.distanceTo(hoverPos);
+                        const EFFECT_RADIUS = 80; // 光标影响范围
+                        
+                        if (dist < EFFECT_RADIUS) {
+                            // 距离越近，排斥力越强 (0~1)
+                            const intensity = (EFFECT_RADIUS - dist) / EFFECT_RADIUS; 
+                            
+                            // 计算排斥方向：从光标指向粒子，并强制往后(Z轴负方向)推，模拟风压凹陷
+                            const pushDir = p.position.clone().sub(hoverPos).normalize();
+                            pushDir.z -= 1.0; 
+                            pushDir.normalize();
+                            
+                            // 施加强大排斥力
+                            p.addForce(pushDir.multiplyScalar(intensity * 6000));
+                        }
+                    }
+
+                    p.integrate();
+                }
+            });
+
+            // 放大的平滑拖拽处理
+            if (draggedParticle && draggedParticle.isDragged) {
+                currentDragPos.lerp(targetDragPos, 0.15); // 平滑追赶被放大的目标点
+                draggedParticle.position.copy(currentDragPos);
+                draggedParticle.previous.copy(currentDragPos);
+            }
+
+            // 2. 约束求解器
+            const RELAXATION_ITERATIONS = 15; 
+            for (let i = 0; i < RELAXATION_ITERATIONS; i++) {
+                constraints.forEach(c => c.resolve());
+            }
+
+            // 3. 更新顶点
+            let idx = 0;
+            particles.forEach(p => {
+                positions[idx++] = p.position.x;
+                positions[idx++] = p.position.y;
+                positions[idx++] = p.position.z;
+            });
+
+            paperGeometry.attributes.position.needsUpdate = true;
+            paperGeometry.computeVertexNormals(); 
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            simulate();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
