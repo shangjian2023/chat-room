@@ -836,9 +836,379 @@
             max-width: 400px;
             line-height: 1.6;
         }
+
+        /* ========================================
+           移动端响应式适配
+           ======================================== */
+        @media (max-width: 1024px) {
+            /* 平板和手机：左中右三栏变单栏 */
+            .chat-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+                min-height: auto;
+            }
+
+            /* 课程平台区域 */
+            .course-platform {
+                min-height: 400px;
+            }
+
+            /* 聊天区域 */
+            .chat-main {
+                min-height: 400px;
+            }
+
+            /* 小票区域 */
+            .receipt-panel {
+                min-height: 300px;
+            }
+
+            .receipt-wrapper {
+                min-height: 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            /* 页面基础 */
+            body {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* 主面板 */
+            .pixel-panel {
+                padding: 15px;
+                border-width: 3px;
+                box-shadow:
+                    3px 3px 0 var(--pixel-shadow),
+                    6px 6px 0 var(--pixel-shadow);
+            }
+
+            /* 导航栏 */
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 10px 15px;
+            }
+
+            .navbar h1 {
+                font-size: 12px;
+                text-align: center;
+            }
+
+            .navbar .user-info {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .navbar .user-info span {
+                font-size: 11px;
+                text-align: center;
+            }
+
+            /* 标题简化 */
+            .chat-layout h2 {
+                font-size: 11px;
+                margin-bottom: 10px;
+            }
+
+            /* 课程标签 */
+            .course-tabs {
+                justify-content: center;
+            }
+
+            .course-tab {
+                font-size: 9px;
+                padding: 8px 12px;
+                flex: 0 0 auto;
+            }
+
+            /* 聊天室标签 */
+            .room-tabs {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .room-tab {
+                font-size: 9px;
+                padding: 8px 12px;
+                flex: 0 0 auto;
+            }
+
+            /* 聊天消息区域 */
+            .chat-messages {
+                padding: 10px;
+                max-height: 250px;
+            }
+
+            /* 输入区域 */
+            .chat-input-area {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .chat-input-area textarea {
+                height: 60px;
+                font-size: 13px;
+            }
+
+            .send-btn {
+                width: 100%;
+                padding: 12px;
+            }
+
+            /* 课程模块 */
+            .course-module {
+                padding: 12px;
+            }
+
+            .course-module-header {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .course-module-title {
+                font-size: 12px;
+            }
+
+            .course-module-content {
+                font-size: 12px;
+            }
+
+            /* 按钮优化 */
+            .action-btn {
+                font-size: 8px;
+                padding: 5px 10px;
+                margin: 3px 2px;
+            }
+
+            .module-actions {
+                flex-wrap: wrap;
+            }
+
+            /* 坠落按钮 */
+            .fall-control-btn {
+                font-size: 10px;
+                padding: 12px 15px;
+                bottom: 10px;
+                right: 10px;
+                transform: none;
+                top: auto;
+            }
+
+            .fall-control-btn:hover,
+            .fall-control-btn:active {
+                transform: scale(1.05);
+            }
+
+            /* 表单优化 */
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            /* 添加课程表单 */
+            .add-module-form {
+                padding: 12px;
+            }
+
+            /* 消息提示 */
+            .pixel-message {
+                font-size: 11px;
+                padding: 8px;
+            }
+
+            /* 小票区域 */
+            .receipt-container {
+                min-height: 250px;
+            }
+
+            .receipt-wrapper {
+                min-height: 200px;
+            }
+
+            .receipt-ui-layer {
+                font-size: 9px;
+                bottom: 10px;
+                left: 10px;
+            }
+
+            /* 退出按钮 */
+            .logout-btn {
+                font-size: 8px;
+                padding: 6px 12px;
+            }
+
+            /* 滚动条优化 */
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            /* 加载界面适配 */
+            .loading-bar-container {
+                width: 250px;
+                height: 15px;
+            }
+
+            .loading-text {
+                font-size: 14px;
+            }
+
+            .loading-tip {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            /* 手机端进一步优化 */
+            body {
+                padding: 5px;
+                font-size: 13px;
+            }
+
+            .pixel-panel {
+                padding: 10px;
+                border-width: 2px;
+                box-shadow: 2px 2px 0 var(--pixel-shadow);
+            }
+
+            /* 隐藏装饰性元素，提升性能 */
+            .pixel-panel::before {
+                display: none;
+            }
+
+            /* 标签页单行滚动 */
+            .course-tabs,
+            .room-tabs {
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .course-tab,
+            .room-tab {
+                flex: 0 0 auto;
+                margin-right: 5px;
+            }
+
+            /* 聊天消息 */
+            .chat-message {
+                padding: 8px;
+                margin-bottom: 10px;
+            }
+
+            .chat-message .meta {
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .chat-message .username {
+                font-size: 11px;
+            }
+
+            .chat-message .time {
+                font-size: 10px;
+            }
+
+            .chat-message .text {
+                font-size: 12px;
+            }
+
+            /* 坠落动画在移动端禁用 */
+            .fall-element.falling,
+            .fall-element.resetting {
+                animation: none !important;
+                transform: none !important;
+            }
+
+            /* 3D 小票在移动端降低分辨率 */
+            #receipt-canvas-container {
+                transform: scale(0.9);
+                transform-origin: center top;
+            }
+
+            /* 导航栏 */
+            .navbar h1 {
+                font-size: 11px;
+            }
+
+            /* 管理员标识 */
+            .navbar .user-info span span[style*="color: #ff004d"] {
+                display: block;
+                margin-top: 5px;
+            }
+        }
+
+        /* 横屏优化 */
+        @media (orientation: landscape) and (max-width: 896px) {
+            .chat-layout {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto;
+            }
+
+            .course-platform {
+                grid-row: 1 / 2;
+            }
+
+            .chat-main {
+                grid-column: 2 / 3;
+                grid-row: 1 / 2;
+            }
+
+            .receipt-panel {
+                grid-column: 2 / 3;
+                grid-row: 2 / 3;
+            }
+        }
+
+        /* 触摸设备优化 */
+        @media (hover: none) and (pointer: coarse) {
+            /* 增大触摸目标 */
+            button,
+            .action-btn,
+            .room-tab,
+            .course-tab,
+            .send-btn,
+            .logout-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+
+            /* 移除 hover 效果，改用 active */
+            .room-tab:hover,
+            .course-tab:hover,
+            .action-btn:hover,
+            .send-btn:hover {
+                transform: none;
+            }
+
+            .room-tab:active,
+            .course-tab:active,
+            .action-btn:active,
+            .send-btn:active {
+                transform: scale(0.95);
+            }
+
+            /* 输入框聚焦 */
+            textarea:focus,
+            input:focus,
+            select:focus {
+                font-size: 16px; /* 防止 iOS 自动缩放 */
+            }
+        }
     </style>
 </head>
-<body>
+<body ontouchstart>
     <!-- 加载界面 -->
     <div id="loading-overlay">
         <div id="loading-animation-container"></div>
@@ -1916,6 +2286,23 @@
         // 初始化应用
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
+            // 检测移动设备
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+
+            // 移动端优化
+            if (isMobile) {
+                document.body.classList.add('mobile-device');
+                // 移动端禁用或简化 3D 小票
+                if (window.innerWidth < 480) {
+                    console.log('移动端：简化 3D 效果');
+                }
+            }
+
+            if (isTablet) {
+                document.body.classList.add('tablet-device');
+            }
+
             // 初始化坠落动画
             FallApp.init();
 
@@ -1936,6 +2323,27 @@
                     );
                 }
             }, 100);
+
+            // 防止双击缩放
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTouchEnd <= 300) {
+                    e.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+
+            // 防止 iOS 输入时自动缩放
+            const metaViewport = document.querySelector('meta[name="viewport"]');
+            if (metaViewport) {
+                document.addEventListener('focusin', () => {
+                    metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+                });
+                document.addEventListener('focusout', () => {
+                    metaViewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                });
+            }
         });
     </script>
 </body>
