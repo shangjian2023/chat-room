@@ -1360,6 +1360,7 @@
 
     <div id="online-count-display" style="display:none">{{ online_users|length }}</div>
     <div id="message-count-display" style="display:none">{{ messages|length }}</div>
+    <div id="online-users-list" style="display:none">{{ online_users | tojson }}</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.1/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1805,9 +1806,10 @@
             camera: null,
             renderer: null,
 
-            init(onlineCount, messageCount) {
+            init(onlineCount, messageCount, onlineUsersList) {
                 this.currentOnline = onlineCount;
                 this.currentMessages = messageCount;
+                this.onlineUsers = onlineUsersList || [];
                 // 注册全局实例，方便 ChatApp 调用
                 window.ReceiptAppInstance = this;
                 this.create3DScene();
@@ -1815,9 +1817,12 @@
             },
 
             // 从 WebSocket 更新在线人数
-            updateFromSocket(count) {
+            updateFromSocket(count, usersList) {
                 if (count !== this.currentOnline) {
                     this.currentOnline = count;
+                    if (usersList) {
+                        this.onlineUsers = usersList;
+                    }
                     this.updateTexture();
                 }
             },
@@ -1969,15 +1974,35 @@
                 ctx.textAlign = 'right';
                 ctx.fillStyle = '#00aa00';
                 ctx.fillText(online + ' 人', 462, y);
-                y += 65;
+                y += 50;
 
+                // 显示在线用户列表
                 ctx.fillStyle = '#000000';
+                ctx.font = 'bold 28px monospace';
                 ctx.textAlign = 'left';
-                ctx.fillText('消 息 总 数', 50, y);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#0066ff';
-                ctx.fillText(messages + ' 条', 462, y);
-                y += 65;
+                ctx.fillText('在 线 用 户', 50, y);
+                y += 35;
+
+                ctx.font = '20px monospace';
+                if (this.onlineUsers && this.onlineUsers.length > 0) {
+                    const maxUsers = 12; // 最多显示 12 个用户
+                    const displayUsers = this.onlineUsers.slice(0, maxUsers);
+                    displayUsers.forEach((user, index) => {
+                        ctx.fillStyle = '#333333';
+                        ctx.fillText('● ' + user.username, 60, y + (index * 24));
+                    });
+                    if (this.onlineUsers.length > maxUsers) {
+                        ctx.fillStyle = '#666666';
+                        ctx.font = '18px monospace';
+                        ctx.fillText('... 还有 ' + (this.onlineUsers.length - maxUsers) + ' 人', 60, y + (maxUsers * 24));
+                    }
+                } else {
+                    ctx.fillStyle = '#999999';
+                    ctx.font = '20px monospace';
+                    ctx.fillText('暂无在线用户', 60, y);
+                }
+
+                y += (Math.min(this.onlineUsers.length, 12) + 1) * 24 + 20;
 
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#000000';
@@ -2210,7 +2235,7 @@
                 }
                 // 直接触发小票更新（如果存在）
                 if (window.ReceiptAppInstance) {
-                    window.ReceiptAppInstance.updateFromSocket(data.count);
+                    window.ReceiptAppInstance.updateFromSocket(data.count, data.users);
                 }
             },
 
@@ -2343,9 +2368,11 @@
                 if (LoadingApp.isLoaded) {
                     clearInterval(checkLoaded);
                     ChatApp.init();
+                    const onlineUsersList = JSON.parse(document.getElementById('online-users-list').textContent || '[]');
                     ReceiptApp.init(
                         parseInt("{{ online_users|length }}") || 0,
-                        parseInt("{{ messages|length }}") || 0
+                        parseInt("{{ messages|length }}") || 0,
+                        onlineUsersList
                     );
                 }
             }, 100);

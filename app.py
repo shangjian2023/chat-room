@@ -204,9 +204,10 @@ def handle_connect():
         for room in chat_rooms.keys():
             join_room(room)
 
-        # 广播更新在线人数
+        # 广播更新在线人数和用户列表
         online_count = get_online_users_count()
-        emit('online_count', {'count': online_count}, broadcast=True)
+        users_list = get_online_users_list()
+        emit('online_count', {'count': online_count, 'users': users_list}, broadcast=True)
         print(f"用户 {username} 连接聊天室，当前在线：{online_count}")
 
 @socketio.on('disconnect')
@@ -222,9 +223,10 @@ def handle_disconnect():
         # 更新数据库，不立即删除，标记为非活动
         remove_online_user(session_id=session_id)
 
-        # 广播更新在线人数
+        # 广播更新在线人数和用户列表
         online_count = get_online_users_count()
-        emit('online_count', {'count': online_count}, broadcast=True)
+        users_list = get_online_users_list()
+        emit('online_count', {'count': online_count, 'users': users_list}, broadcast=True)
 
 @socketio.on('heartbeat')
 def handle_heartbeat():
@@ -271,14 +273,10 @@ def handle_message(data):
 
 @socketio.on('get_online_count')
 def handle_online_count():
+    """获取在线人数和在线用户列表"""
     count = get_online_users_count()
-    emit('online_count', {'count': count})
-
-@socketio.on('get_online_count')
-def handle_online_count():
-    """获取在线人数"""
-    count = get_online_users_count()
-    emit('online_count', {'count': count})
+    users_list = get_online_users_list()
+    emit('online_count', {'count': count, 'users': users_list})
 
 @socketio.on('get_messages')
 def handle_get_messages():

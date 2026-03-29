@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(python:*)",
+      "Bash(sqlite3:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
