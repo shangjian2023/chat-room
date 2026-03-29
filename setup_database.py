@@ -50,6 +50,7 @@ def init_database():
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 username VARCHAR(80) UNIQUE NOT NULL,
                 password_hash VARCHAR(256) NOT NULL,
+                is_admin BOOLEAN DEFAULT FALSE,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
@@ -66,6 +67,20 @@ def init_database():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
         print("✓ 聊天消息表创建成功")
+
+        # 创建课程模块表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS course_modules (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(200) NOT NULL,
+                category VARCHAR(50) NOT NULL,
+                content TEXT NOT NULL,
+                order_index INT DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+        print("✓ 课程模块表创建成功")
 
         # 查看表结构
         cursor.execute("DESCRIBE users")

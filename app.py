@@ -32,6 +32,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now)
 
     def set_password(self, password):
@@ -65,6 +66,17 @@ class OnlineUser(db.Model):
     ip_address = db.Column(db.String(45))
     user_agent = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
+
+# 课程模块模型
+class CourseModule(db.Model):
+    __tablename__ = 'course_modules'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # css, html, java 等
+    content = db.Column(db.Text, nullable=False)
+    order_index = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
 # 聊天房间
 chat_rooms = {
@@ -304,10 +316,18 @@ def index():
     # 从数据库获取在线用户列表
     online_users_list = get_online_users_list()
 
+    # 获取课程模块
+    course_modules = CourseModule.query.order_by(CourseModule.order_index).all()
+
+    # 检查是否是管理员
+    is_admin = session.get('is_admin', False)
+
     return render_template('index.html',
                          username=session.get('username'),
                          online_users=online_users_list,
-                         messages=messages)
+                         messages=messages,
+                         course_modules=course_modules,
+                         is_admin=is_admin)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -361,6 +381,7 @@ def login():
 
         session['user_id'] = user.id
         session['username'] = user.username
+        session['is_admin'] = user.is_admin
 
         # 添加到在线用户数据库
         add_online_user(user.id, username)
@@ -405,8 +426,98 @@ def admin():
                          total_sessions=total_sessions,
                          active_sessions=active_sessions)
 
+# 课程管理 API（仅管理员）
+@app.route('/api/course/save', methods=['POST'])
+def save_course():
+    if not session.get('is_admin'):
+        return {'success': False, 'message': '权限不足'}, 403
+
+    data = request.get_json()
+    module_id = data.get('id')
+    title = data.get('title', '').strip()
+    category = data.get('category', 'other')
+    content = data.get('content', '').strip()
+    order_index = data.get('order_index', 0)
+
+    if not title or not content:
+        return {'success': False, 'message': '标题和内容不能为空'}, 400
+
+    if module_id:
+        # 更新现有模块
+        module = CourseModule.query.get(module_id)
+        if module:
+            module.title = title
+            module.category = category
+            module.content = content
+            module.order_index = order_index
+            db.session.commit()
+            return {'success': True, 'message': '更新成功'}
+        return {'success': False, 'message': '模块不存在'}, 404
+    else:
+        # 创建新模块
+        new_module = CourseModule(title=title, category=category, content=content, order_index=order_index)
+        db.session.add(new_module)
+        db.session.commit()
+        return {'success': True, 'message': '创建成功', 'id': new_module.id}
+
+@app.route('/api/course/delete', methods=['POST'])
+def delete_course():
+    if not session.get('is_admin'):
+        return {'success': False, 'message': '权限不足'}, 403
+
+    data = request.get_json()
+    module_id = data.get('id')
+
+    if module_id:
+        module = CourseModule.query.get(module_id)
+        if module:
+            db.session.delete(module)
+            db.session.commit()
+            return {'success': True, 'message': '删除成功'}
+        return {'success': False, 'message': '模块不存在'}, 404
+    return {'success': False, 'message': '缺少 ID'}, 400
+
+@app.route('/api/course/reorder', methods=['POST'])
+def reorder_course():
+    if not session.get('is_admin'):
+        return {'success': False, 'message': '权限不足'}, 403
+
+    data = request.get_json()
+    modules = data.get('modules', [])
+
+    for item in modules:
+        module = CourseModule.query.get(item['id'])
+        if module:
+            module.order_index = item['order_index']
+    db.session.commit()
+    return {'success': True, 'message': '排序更新成功'}
+
 if __name__ == '__main__':
     import threading
+
+    def init_default_data():
+        """初始化默认数据"""
+        with app.app_context():
+            # 创建默认管理员账号
+            admin_user = User.query.filter_by(username='mazhuoran').first()
+            if not admin_user:
+                admin_user = User(username='mazhuoran', is_admin=True)
+                admin_user.set_password('mazhuoran')
+                db.session.add(admin_user)
+                db.session.commit()
+                print("已创建管理员账号：mazhuoran")
+
+            # 创建默认课程模块
+            if CourseModule.query.count() == 0:
+                default_modules = [
+                    CourseModule(title='CSS 基础', category='css', content='CSS 层叠样式表，用于控制网页样式和布局。', order_index=1),
+                    CourseModule(title='HTML 基础', category='html', content='HTML 超文本标记语言，是网页的骨架。', order_index=2),
+                    CourseModule(title='Java 入门', category='java', content='Java 是一种跨平台的编程语言。', order_index=3),
+                ]
+                for module in default_modules:
+                    db.session.add(module)
+                db.session.commit()
+                print("已创建默认课程模块")
 
     def cleanup_task():
         """定期清理过期会话"""
@@ -420,6 +531,9 @@ if __name__ == '__main__':
     # 启动后台清理线程
     cleanup_thread = threading.Thread(target=cleanup_task, daemon=True)
     cleanup_thread.start()
+
+    # 初始化默认数据
+    init_default_data()
 
     init_db()
     socketio.run(app, host='0.0.0.0', port=8080, debug=True, allow_unsafe_werkzeug=True)

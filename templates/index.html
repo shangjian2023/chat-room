@@ -288,18 +288,231 @@
             color: var(--pixel-text-primary);
         }
 
-        /* 聊天布局 */
+        /* 聊天布局 - 左中右三栏：左侧课程平台，中间聊天室，右侧实时统计 */
         .chat-layout {
             display: grid;
-            grid-template-columns: 1fr 320px;
+            grid-template-columns: 1fr 1fr 350px;
             gap: 20px;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+        }
+
+        /* 课程平台区域 */
+        .course-platform {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 中间聊天区域 */
+        .chat-main {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        /* 右侧小票区域 - 放大显示 */
+        .receipt-panel {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .receipt-container {
+            flex: 1;
+            width: 100%;
+        }
+
+        .receipt-wrapper {
+            height: calc(100% - 40px);
+            min-height: 400px;
+        }
+
+        .course-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .course-tab {
+            padding: 10px 20px;
+            background: linear-gradient(180deg, #00e436 0%, #00bb29 100%);
+            color: var(--pixel-btn-text);
+            border: 4px solid var(--pixel-border);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            image-rendering: pixelated;
+        }
+
+        .course-tab:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                6px 6px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
+        }
+
+        .course-tab.active {
+            background: linear-gradient(180deg, #ffccaa 0%, #ffaa66 100%);
+        }
+
+        .course-tab[data-category="all"] { background: linear-gradient(180deg, #29adff 0%, #1a8bc9 100%); }
+        .course-tab[data-category="css"] { background: linear-gradient(180deg, #29adff 0%, #1a8bc9 100%); }
+        .course-tab[data-category="html"] { background: linear-gradient(180deg, #ff6b6b 0%, #c0392b 100%); }
+        .course-tab[data-category="java"] { background: linear-gradient(180deg, #f39c12 0%, #d35400 100%); }
+
+        .course-list {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid var(--pixel-border);
+            padding: 15px;
+            overflow-y: auto;
+            box-shadow:
+                inset 4px 4px 0 rgba(0,0,0,0.4),
+                inset -4px -4px 0 rgba(255,255,255,0.05);
+            image-rendering: pixelated;
+        }
+
+        .course-module {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(180deg, #2a3b6e 0%, #1d2b53 100%);
+            border: 3px solid var(--pixel-border);
+            box-shadow:
+                3px 3px 0 rgba(0,0,0,0.3),
+                inset 1px 1px 0 rgba(255,255,255,0.1);
+            image-rendering: pixelated;
+        }
+
+        .course-module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .course-module-title {
+            color: var(--pixel-acc-primary);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .course-module-category {
+            font-size: 11px;
+            color: var(--pixel-text-secondary);
+            padding: 3px 8px;
+            border: 2px solid var(--pixel-border);
+            border-radius: 4px;
+        }
+
+        .course-module-content {
+            color: var(--pixel-text-primary);
+            line-height: 1.6;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+
+        .course-module-content[contenteditable="true"] {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px dashed var(--pixel-border);
+            padding: 10px;
+            min-height: 60px;
+        }
+
+        .course-module-content[contenteditable="true"]:focus {
+            outline: none;
+            border-color: var(--pixel-acc-primary);
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 9px;
+            padding: 6px 12px;
+            border: 3px solid var(--pixel-border);
+            cursor: pointer;
+            box-shadow: 3px 3px 0 var(--pixel-shadow);
+            transition: transform 0.1s, box-shadow 0.1s;
+            image-rendering: pixelated;
+        }
+
+        .action-btn.save { background: linear-gradient(180deg, #00e436 0%, #00bb29 100%); color: var(--pixel-btn-text); }
+        .action-btn.cancel { background: linear-gradient(180deg, #c2c3c7 0%, #95a5a6 100%); color: var(--pixel-btn-text); }
+        .action-btn.delete { background: linear-gradient(180deg, #ff004d 0%, #c0392b 100%); color: var(--pixel-text-primary); }
+        .action-btn.edit { background: linear-gradient(180deg, #ffa300 0%, #d35400 100%); color: var(--pixel-btn-text); }
+        .action-btn.add { background: linear-gradient(180deg, #29adff 0%, #1a8bc9 100%); color: var(--pixel-text-primary); }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 5px 5px 0 var(--pixel-shadow);
+        }
+
+        .action-btn:active {
+            transform: translateY(2px);
+            box-shadow: 1px 1px 0 var(--pixel-shadow);
+        }
+
+        .add-module-form {
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid var(--pixel-border);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .add-module-form.show {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--pixel-text-secondary);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid var(--pixel-border);
+            color: var(--pixel-text-primary);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--pixel-acc-primary);
         }
 
         /* 聊天主区域 */
         .chat-main {
             display: flex;
             flex-direction: column;
-            height: 520px;
+            height: 100%;
         }
 
         /* 房间切换按钮 - 像素风格 */
@@ -482,6 +695,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            height: 100%;
         }
 
         .receipt-title {
@@ -495,7 +709,7 @@
 
         .receipt-wrapper {
             width: 100%;
-            height: 500px;
+            flex: 1;
             border: 4px solid var(--pixel-border);
             background: rgba(0, 0, 0, 0.3);
             box-shadow:
@@ -639,9 +853,9 @@
     <div class="container">
         <div class="pixel-panel fall-element" id="main-panel">
             <nav class="navbar fall-element">
-                <h1 class="fall-element">💬 聊天室</h1>
+                <h1 class="fall-element">💬 课程聊天平台</h1>
                 <div class="user-info fall-element">
-                    <span class="fall-element">欢迎，{{ username }}</span>
+                    <span class="fall-element">欢迎，{{ username }} {% if is_admin %}<span style="color: #ff004d;">[管理员]</span>{% endif %}</span>
                     <a href="/logout" class="logout-btn fall-element">退出</a>
                 </div>
             </nav>
@@ -655,7 +869,78 @@
             {% endwith %}
 
             <div class="chat-layout fall-element">
-                <div class="chat-main" data-module="chat">
+                <!-- 左侧：课程平台 -->
+                <div class="course-platform fall-element" data-module="course">
+                    <h2 style="font-family: 'Press Start 2P', cursive; font-size: 14px; margin-bottom: 15px; color: var(--pixel-acc-primary);">📚 课程平台</h2>
+
+                    <!-- 分类标签 -->
+                    <div class="course-tabs fall-element">
+                        <button class="course-tab active" data-category="all">全部</button>
+                        <button class="course-tab" data-category="css">CSS</button>
+                        <button class="course-tab" data-category="html">HTML</button>
+                        <button class="course-tab" data-category="java">Java</button>
+                    </div>
+
+                    <!-- 添加模块表单（仅管理员可见） -->
+                    {% if is_admin %}
+                    <div class="add-module-form fall-element" id="add-module-form">
+                        <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--pixel-text-secondary);">➕ 添加课程模块</h3>
+                        <div class="form-group">
+                            <label>标题</label>
+                            <input type="text" id="new-module-title" placeholder="输入标题">
+                        </div>
+                        <div class="form-group">
+                            <label>分类</label>
+                            <select id="new-module-category">
+                                <option value="css">CSS</option>
+                                <option value="html">HTML</option>
+                                <option value="java">Java</option>
+                                <option value="other">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>内容</label>
+                            <textarea id="new-module-content" rows="4" placeholder="输入课程内容"></textarea>
+                        </div>
+                        <div class="module-actions">
+                            <button class="action-btn add" onclick="CourseApp.addModule()">添加</button>
+                            <button class="action-btn cancel" onclick="document.getElementById('add-module-form').classList.remove('show')">取消</button>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 课程列表 -->
+                    <div class="course-list fall-element" id="course-list">
+                        {% for module in course_modules %}
+                        <div class="course-module fall-element" data-id="{{ module.id }}" data-category="{{ module.category }}">
+                            <div class="course-module-header">
+                                <span class="course-module-title">{{ module.title }}</span>
+                                <span class="course-module-category">{{ module.category.upper() }}</span>
+                            </div>
+                            <div class="course-module-content" id="content-{{ module.id }}">{{ module.content }}</div>
+                            {% if is_admin %}
+                            <div class="module-actions">
+                                <button class="action-btn edit" onclick="CourseApp.editModule({{ module.id }})">✏️ 编辑</button>
+                                <button class="action-btn save" onclick="CourseApp.saveModule({{ module.id }})" style="display:none;">💾 保存</button>
+                                <button class="action-btn cancel" onclick="CourseApp.cancelEdit({{ module.id }})" style="display:none;">❌ 取消</button>
+                                <button class="action-btn delete" onclick="CourseApp.deleteModule({{ module.id }})">🗑️ 删除</button>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if is_admin %}
+                    <div style="margin-top: 15px;">
+                        <button class="action-btn add fall-element" onclick="document.getElementById('add-module-form').classList.add('show')">➕ 添加新课程</button>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- 中间：聊天室 -->
+                <div class="chat-main fall-element" data-module="chat">
+                    <h2 style="font-family: 'Press Start 2P', cursive; font-size: 14px; margin-bottom: 15px; color: var(--pixel-acc-primary);">💬 聊天室</h2>
+
                     <div class="room-tabs fall-element">
                         <button class="room-tab active fall-element" data-room="general">🏠 公共频道</button>
                         <button class="room-tab fall-element" data-room="study">📚 学习交流</button>
@@ -684,11 +969,14 @@
                     </div>
                 </div>
 
-                <div class="receipt-container" data-module="receipt">
-                    <div class="receipt-title fall-element">📊 实时统计</div>
-                    <div class="receipt-wrapper fall-element" id="receipt-wrapper">
-                        <div id="receipt-canvas-container"></div>
-                        <div class="receipt-ui-layer fall-element">🖱️ 悬浮：扰动 | ✋ 拖拽：拉扯</div>
+                <!-- 右侧：实时统计（3D 小票） -->
+                <div class="receipt-panel fall-element" data-module="receipt">
+                    <div class="receipt-container">
+                        <div class="receipt-title fall-element">📊 实时统计</div>
+                        <div class="receipt-wrapper fall-element" id="receipt-wrapper">
+                            <div id="receipt-canvas-container"></div>
+                            <div class="receipt-ui-layer fall-element">🖱️ 悬浮：扰动 | ✋ 拖拽：拉扯</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -793,6 +1081,192 @@
                         el.style.removeProperty('--fall-bounce');
                     }, 800);
                 });
+            }
+        };
+
+        // ==========================================
+        // 课程平台管理模块（管理员专用）
+        // ==========================================
+        const CourseApp = {
+            currentCategory: 'all',
+            editingModuleId: null,
+
+            init() {
+                // 绑定分类过滤事件
+                document.querySelectorAll('.course-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => this.filterByCategory(e.target.dataset.category));
+                });
+            },
+
+            // 按分类过滤
+            filterByCategory(category) {
+                this.currentCategory = category;
+                document.querySelectorAll('.course-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.category === category);
+                });
+
+                const modules = document.querySelectorAll('.course-module');
+                modules.forEach(module => {
+                    if (category === 'all' || module.dataset.category === category) {
+                        module.style.display = 'block';
+                    } else {
+                        module.style.display = 'none';
+                    }
+                });
+            },
+
+            // 编辑模块
+            editModule(moduleId) {
+                const contentEl = document.getElementById(`content-${moduleId}`);
+                const moduleEl = contentEl.closest('.course-module');
+                const editBtn = moduleEl.querySelector('.action-btn.edit');
+                const saveBtn = moduleEl.querySelector('.action-btn.save');
+                const cancelBtn = moduleEl.querySelector('.action-btn.cancel');
+
+                // 存储原始内容
+                contentEl.dataset.originalContent = contentEl.innerHTML;
+
+                // 设置为可编辑
+                contentEl.contentEditable = true;
+                contentEl.focus();
+
+                // 切换按钮显示
+                editBtn.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'inline-block';
+
+                this.editingModuleId = moduleId;
+            },
+
+            // 保存模块
+            async saveModule(moduleId) {
+                const contentEl = document.getElementById(`content-${moduleId}`);
+                const moduleEl = contentEl.closest('.course-module');
+                const titleEl = moduleEl.querySelector('.course-module-title');
+                const saveBtn = moduleEl.querySelector('.action-btn.save');
+                const cancelBtn = moduleEl.querySelector('.action-btn.cancel');
+                const editBtn = moduleEl.querySelector('.action-btn.edit');
+
+                const newContent = contentEl.innerText;
+
+                try {
+                    const response = await fetch('/api/course/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: moduleId,
+                            title: titleEl.textContent,
+                            category: moduleEl.dataset.category,
+                            content: newContent
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        contentEl.contentEditable = false;
+                        contentEl.innerHTML = newContent.replace(/\n/g, '<br>');
+                        delete contentEl.dataset.originalContent;
+
+                        editBtn.style.display = 'inline-block';
+                        saveBtn.style.display = 'none';
+                        cancelBtn.style.display = 'none';
+
+                        this.editingModuleId = null;
+                        alert('保存成功！');
+                    } else {
+                        alert('保存失败：' + result.message);
+                    }
+                } catch (error) {
+                    alert('保存失败：' + error.message);
+                }
+            },
+
+            // 取消编辑
+            cancelEdit(moduleId) {
+                const contentEl = document.getElementById(`content-${moduleId}`);
+                const moduleEl = contentEl.closest('.course-module');
+                const editBtn = moduleEl.querySelector('.action-btn.edit');
+                const saveBtn = moduleEl.querySelector('.action-btn.save');
+                const cancelBtn = moduleEl.querySelector('.action-btn.cancel');
+
+                // 恢复原始内容
+                if (contentEl.dataset.originalContent) {
+                    contentEl.innerHTML = contentEl.dataset.originalContent;
+                    delete contentEl.dataset.originalContent;
+                }
+
+                contentEl.contentEditable = false;
+
+                editBtn.style.display = 'inline-block';
+                saveBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+
+                this.editingModuleId = null;
+            },
+
+            // 删除模块
+            async deleteModule(moduleId) {
+                if (!confirm('确定要删除这个课程模块吗？')) return;
+
+                try {
+                    const response = await fetch('/api/course/delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: moduleId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        const moduleEl = document.querySelector(`.course-module[data-id="${moduleId}"]`);
+                        if (moduleEl) {
+                            moduleEl.remove();
+                        }
+                        alert('删除成功！');
+                    } else {
+                        alert('删除失败：' + result.message);
+                    }
+                } catch (error) {
+                    alert('删除失败：' + error.message);
+                }
+            },
+
+            // 添加模块
+            async addModule() {
+                const titleInput = document.getElementById('new-module-title');
+                const categorySelect = document.getElementById('new-module-category');
+                const contentInput = document.getElementById('new-module-content');
+
+                const title = titleInput.value.trim();
+                const category = categorySelect.value;
+                const content = contentInput.value.trim();
+
+                if (!title || !content) {
+                    alert('标题和内容不能为空！');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/course/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: title,
+                            category: category,
+                            content: content,
+                            order_index: 999
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // 重新加载页面
+                        window.location.reload();
+                    } else {
+                        alert('添加失败：' + result.message);
+                    }
+                } catch (error) {
+                    alert('添加失败：' + error.message);
+                }
             }
         };
 
@@ -1444,6 +1918,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             // 初始化坠落动画
             FallApp.init();
+
+            // 初始化课程平台
+            CourseApp.init();
 
             // 先启动加载界面
             LoadingApp.init();
