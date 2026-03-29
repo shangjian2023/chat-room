@@ -25,6 +25,25 @@ def init_database():
         # 使用数据库
         cursor.execute("USE course_platform")
 
+        # 创建在线用户表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS online_users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                session_id VARCHAR(256) UNIQUE NOT NULL,
+                username VARCHAR(80) NOT NULL,
+                login_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_active DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                ip_address VARCHAR(45),
+                user_agent VARCHAR(500),
+                is_active BOOLEAN DEFAULT TRUE,
+                INDEX idx_user_id (user_id),
+                INDEX idx_session_id (session_id),
+                INDEX idx_last_active (last_active)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+        print("✓ 在线用户表创建成功")
+
         # 创建用户表
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -35,6 +54,18 @@ def init_database():
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
         print("✓ 用户表创建成功")
+
+        # 创建聊天消息表
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS chat_messages (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(80) NOT NULL,
+                message TEXT NOT NULL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                room VARCHAR(50) DEFAULT 'general'
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+        print("✓ 聊天消息表创建成功")
 
         # 查看表结构
         cursor.execute("DESCRIBE users")

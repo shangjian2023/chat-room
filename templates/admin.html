@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>在线用户管理 - 课程平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        :root {
+            --pixel-bg-main: #29adff;
+            --pixel-bg-panel: #1d2b53;
+            --pixel-text-primary: #fff1e8;
+            --pixel-text-secondary: #c2c3c7;
+            --pixel-border: #000000;
+            --pixel-shadow: rgba(0, 0, 0, 0.5);
+            --pixel-acc-primary: #ffccaa;
+            --pixel-acc-secondary: #ff004d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--pixel-bg-main);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pixel-panel {
+            background-color: var(--pixel-bg-panel);
+            color: var(--pixel-text-primary);
+            border: 4px solid var(--pixel-border);
+            box-shadow: 10px 10px 0px var(--pixel-shadow);
+            padding: 25px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid var(--pixel-border);
+            margin-bottom: 20px;
+        }
+
+        .navbar h1 {
+            font-size: 20px;
+            color: var(--pixel-acc-primary);
+            text-transform: uppercase;
+        }
+
+        .back-btn {
+            background-color: var(--pixel-acc-secondary);
+            color: var(--pixel-text-primary);
+            border: 2px solid var(--pixel-border);
+            padding: 8px 20px;
+            font-size: 12px;
+            text-decoration: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            display: inline-block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 3px solid var(--pixel-border);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--pixel-text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            color: var(--pixel-acc-primary);
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            background: rgba(0, 0, 0, 0.2);
+            border: 3px solid var(--pixel-border);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--pixel-border);
+        }
+
+        th {
+            background: var(--pixel-bg-main);
+            color: var(--pixel-text-primary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .status-active {
+            color: #00e436;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: var(--pixel-text-secondary);
+        }
+
+        .refresh-btn {
+            background-color: var(--pixel-acc-primary);
+            color: var(--pixel-bg-panel);
+            border: 2px solid var(--pixel-border);
+            padding: 8px 20px;
+            font-size: 12px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: inherit;
+            margin-bottom: 15px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--pixel-text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pixel-panel">
+            <nav class="navbar">
+                <h1>📊 在线用户管理</h1>
+                <a href="/" class="back-btn">返回聊天室</a>
+            </nav>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">当前在线用户</div>
+                    <div class="value" id="online-count">{{ online_users|length }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">总会话数</div>
+                    <div class="value" id="total-sessions">{{ total_sessions }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">活跃会话</div>
+                    <div class="value" id="active-sessions">{{ active_sessions }}</div>
+                </div>
+            </div>
+
+            <button class="refresh-btn" onclick="refreshData()">🔄 刷新数据</button>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户 ID</th>
+                            <th>用户名</th>
+                            <th>会话 ID</th>
+                            <th>IP 地址</th>
+                            <th>登录时间</th>
+                            <th>最后活跃</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table">
+                        {% for user in online_users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.user_id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td style="font-size: 10px; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">{{ user.session_id[:50] }}...</td>
+                            <td>{{ user.ip_address or 'N/A' }}</td>
+                            <td>{{ user.login_time.strftime('%Y-%m-%d %H:%M:%S') if user.login_time else 'N/A' }}</td>
+                            <td>{{ user.last_active.strftime('%Y-%m-%d %H:%M:%S') if user.last_active else 'N/A' }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="status-active">● 在线</span>
+                                {% else %}
+                                    <span class="status-inactive">○ 离线</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="empty-state">暂无在线用户</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshData() {
+            fetch(window.location.href)
+                .then(res => res.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+
+                    // 更新统计表
+                    document.getElementById('online-count').textContent = doc.getElementById('online-count').textContent;
+                    document.getElementById('total-sessions').textContent = doc.getElementById('total-sessions').textContent;
+                    document.getElementById('active-sessions').textContent = doc.getElementById('active-sessions').textContent;
+
+                    // 更新表格
+                    document.getElementById('users-table').innerHTML = doc.getElementById('users-table').innerHTML;
+
+                    alert('数据已刷新');
+                })
+                .catch(err => {
+                    alert('刷新失败：' + err);
+                });
+        }
+
+        // 每 30 秒自动刷新
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>

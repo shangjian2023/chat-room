@@ -6,11 +6,14 @@
     <title>聊天室</title>
     <style>
         /* ========================================
-           Pixel Style - 像素风 (来自 样式.txt)
+           像素风格增强版 (Pixel Art / Retro 8-bit)
            ======================================== */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
         :root {
             --pixel-bg-main: #29adff;
             --pixel-bg-panel: #1d2b53;
+            --pixel-bg-dark: #0d1530;
             --pixel-text-primary: #fff1e8;
             --pixel-text-secondary: #c2c3c7;
             --pixel-border: #000000;
@@ -21,21 +24,31 @@
             --pixel-btn-text: #1d2b53;
             --pixel-success: #00e436;
             --pixel-warning: #ffa300;
+            --pixel-pixel-size: 4px;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'VT323', 'Courier New', monospace;
             -webkit-font-smoothing: none;
             -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeSpeed;
             background-color: var(--pixel-bg-main);
+            background-image:
+                linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -43,30 +56,164 @@
             margin: 0 auto;
         }
 
-        /* 主面板 */
+        /* 主面板 - 像素风格增强 */
         .pixel-panel {
             background-color: var(--pixel-bg-panel);
             color: var(--pixel-text-primary);
             border: 4px solid var(--pixel-border);
-            box-shadow: 10px 10px 0px var(--pixel-shadow);
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                8px 8px 0 var(--pixel-shadow),
+                12px 12px 0 var(--pixel-shadow);
             padding: 25px;
+            image-rendering: pixelated;
         }
 
-        /* 导航栏 */
+        /* 坠落元素类 - 作用于所有独立视觉元素 */
+        .fall-element {
+            transition: transform 0.3s ease-out;
+            will-change: transform;
+            display: inline-block;
+        }
+
+        .fall-element.falling {
+            animation: fallDown var(--fall-duration, 2s) var(--fall-delay, 0s) forwards cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .fall-element.resetting {
+            animation: resetPosition 0.8s ease-in-out forwards;
+        }
+
+        @keyframes fallDown {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            20% {
+                opacity: 0.8;
+            }
+            100% {
+                transform:
+                    translateY(calc(100vh - 150px))
+                    translateX(var(--fall-offset-x, 0px))
+                    rotate(var(--fall-rotate, 0deg));
+                opacity: 1;
+            }
+        }
+
+        @keyframes resetPosition {
+            0% {
+                transform:
+                    translateY(calc(100vh - 150px))
+                    translateX(var(--fall-offset-x, 0px))
+                    rotate(var(--fall-rotate, 0deg));
+                opacity: 1;
+            }
+            60% {
+                transform:
+                    translateY(-20px)
+                    translateX(calc(var(--fall-offset-x, 0px) * 0.5))
+                    rotate(calc(var(--fall-rotate, 0deg) * 0.5));
+                opacity: 0.9;
+            }
+            100% {
+                transform:
+                    translateY(0)
+                    translateX(0)
+                    rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        /* 坠落控制按钮 - 移到正右方，更显眼 */
+        .fall-control-btn {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            z-index: 1000;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+            padding: 20px 25px;
+            background: linear-gradient(180deg, #ff6b6b 0%, #c0392b 100%);
+            color: #fff;
+            border: 4px solid #000;
+            box-shadow:
+                4px 4px 0 #000,
+                0 0 0 2px #fff inset,
+                0 0 20px rgba(255, 107, 107, 0.5);
+            cursor: pointer;
+            text-transform: uppercase;
+            image-rendering: pixelated;
+            transition: all 0.1s;
+            border-radius: 8px 0 0 8px;
+            animation: btnGlow 1s infinite alternate;
+        }
+
+        @keyframes btnGlow {
+            0% { box-shadow: 4px 4px 0 #000, 0 0 0 2px #fff inset, 0 0 10px rgba(255, 107, 107, 0.3); }
+            100% { box-shadow: 4px 4px 0 #000, 0 0 0 2px #fff inset, 0 0 30px rgba(255, 107, 107, 0.8); }
+        }
+
+        .fall-control-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow:
+                6px 6px 0 #000,
+                0 0 0 2px #fff inset,
+                0 0 40px rgba(255, 107, 107, 0.8);
+        }
+
+        .fall-control-btn:active {
+            transform: translateY(-50%) scale(0.95) translateX(2px);
+            box-shadow:
+                2px 2px 0 #000,
+                0 0 0 2px #fff inset,
+                0 0 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .fall-control-btn.falling {
+            background: linear-gradient(180deg, #f39c12 0%, #d35400 100%);
+            animation: btnPulse 0.5s infinite;
+        }
+
+        @keyframes btnPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* 像素装饰角标 */
+        .pixel-panel::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border: 4px solid var(--pixel-border);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 导航栏 - 像素风格 */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 3px solid var(--pixel-border);
+            background: linear-gradient(180deg, rgba(41, 173, 255, 0.3) 0%, rgba(0, 0, 0, 0.5) 100%);
+            border: 4px solid var(--pixel-border);
             margin-bottom: 20px;
+            box-shadow:
+                inset 4px 4px 0 rgba(255,255,255,0.1),
+                inset -4px -4px 0 rgba(0,0,0,0.3);
         }
 
         .navbar h1 {
-            font-size: 20px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 16px;
             color: var(--pixel-acc-primary);
             text-transform: uppercase;
+            text-shadow: 3px 3px 0 var(--pixel-border);
         }
 
         .navbar .user-info {
@@ -81,19 +228,35 @@
         }
 
         .logout-btn {
+            font-family: 'Press Start 2P', cursive;
             background-color: var(--pixel-acc-secondary);
             color: var(--pixel-text-primary);
-            border: 2px solid var(--pixel-border);
-            padding: 6px 15px;
-            font-size: 11px;
+            border: 3px solid var(--pixel-border);
+            padding: 8px 15px;
+            font-size: 9px;
             text-decoration: none;
             text-transform: uppercase;
             cursor: pointer;
-            font-family: inherit;
+            box-shadow:
+                3px 3px 0 var(--pixel-shadow),
+                inset 1px 1px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            image-rendering: pixelated;
         }
 
         .logout-btn:hover {
-            opacity: 0.8;
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow:
+                5px 5px 0 var(--pixel-shadow),
+                inset 1px 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .logout-btn:active {
+            transform: translateY(2px);
+            box-shadow:
+                1px 1px 0 var(--pixel-shadow),
+                inset 1px 1px 0 rgba(0,0,0,0.3);
         }
 
         /* 消息提示 */
@@ -139,7 +302,7 @@
             height: 520px;
         }
 
-        /* 房间切换 */
+        /* 房间切换按钮 - 像素风格 */
         .room-tabs {
             display: flex;
             gap: 10px;
@@ -148,38 +311,66 @@
 
         .room-tab {
             flex: 1;
-            padding: 10px 15px;
-            background-color: var(--pixel-bg-main);
+            padding: 12px 15px;
+            background: linear-gradient(180deg, var(--pixel-bg-main) 0%, #1a8bc9 100%);
             color: var(--pixel-text-primary);
-            border: 3px solid var(--pixel-border);
-            font-size: 12px;
+            border: 4px solid var(--pixel-border);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
             text-transform: uppercase;
             cursor: pointer;
-            font-family: inherit;
-            box-shadow: inset -2px -2px 0px 0px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            image-rendering: pixelated;
+        }
+
+        .room-tab:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                6px 6px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
+        }
+
+        .room-tab:active {
+            transform: translateY(2px);
+            box-shadow:
+                2px 2px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(0,0,0,0.3);
         }
 
         .room-tab.active {
-            background-color: var(--pixel-acc-primary);
+            background: linear-gradient(180deg, var(--pixel-acc-primary) 0%, #ffaa66 100%);
             color: var(--pixel-bg-panel);
-            box-shadow: inset 2px 2px 0px 0px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.3);
         }
 
-        /* 消息区域 */
+        /* 消息区域 - 像素风格 */
         .chat-messages {
             flex: 1;
-            background: rgba(0, 0, 0, 0.2);
-            border: 3px solid var(--pixel-border);
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid var(--pixel-border);
             padding: 15px;
             overflow-y: auto;
             margin-bottom: 15px;
+            box-shadow:
+                inset 4px 4px 0 rgba(0,0,0,0.4),
+                inset -4px -4px 0 rgba(255,255,255,0.05);
+            image-rendering: pixelated;
         }
 
         .chat-message {
             margin-bottom: 12px;
             padding: 10px;
-            background: var(--pixel-bg-panel);
-            border: 2px solid var(--pixel-border);
+            background: linear-gradient(180deg, #2a3b6e 0%, #1d2b53 100%);
+            border: 3px solid var(--pixel-border);
+            box-shadow:
+                3px 3px 0 rgba(0,0,0,0.3),
+                inset 1px 1px 0 rgba(255,255,255,0.1);
+            image-rendering: pixelated;
         }
 
         .chat-message .meta {
@@ -205,7 +396,7 @@
             font-size: 13px;
         }
 
-        /* 输入区域 */
+        /* 输入区域 - 像素风格 */
         .chat-input-area {
             display: flex;
             gap: 10px;
@@ -216,55 +407,77 @@
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 11px;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
             color: var(--pixel-text-secondary);
             cursor: pointer;
             white-space: nowrap;
+            text-shadow: 1px 1px 0 var(--pixel-border);
         }
 
         .anonymous-label input[type="checkbox"] {
-            width: 14px;
-            height: 14px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: var(--pixel-btn-bg);
+            image-rendering: pixelated;
         }
 
         .chat-input-area textarea {
             flex: 1;
             padding: 10px;
-            background: var(--pixel-bg-main);
-            border: 2px solid var(--pixel-border);
+            font-family: 'VT323', monospace;
+            font-size: 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 4px solid var(--pixel-border);
             color: var(--pixel-text-primary);
-            font-family: inherit;
-            font-size: 13px;
             resize: none;
-            height: 45px;
+            height: 50px;
+            box-shadow:
+                inset 3px 3px 0 rgba(0,0,0,0.4),
+                inset -3px -3px 0 rgba(255,255,255,0.05);
         }
 
         .chat-input-area textarea:focus {
             outline: none;
             border-color: var(--pixel-acc-primary);
+            box-shadow:
+                inset 3px 3px 0 rgba(0,0,0,0.4),
+                inset -3px -3px 0 rgba(255,255,255,0.05),
+                0 0 0 2px var(--pixel-acc-primary);
         }
 
         .send-btn {
-            background-color: var(--pixel-btn-bg);
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(180deg, var(--pixel-btn-bg) 0%, #00bb29 100%);
             color: var(--pixel-btn-text);
-            border: 3px solid var(--pixel-border);
-            padding: 10px 25px;
-            font-size: 12px;
+            border: 4px solid var(--pixel-border);
+            padding: 12px 25px;
+            font-size: 11px;
             text-transform: uppercase;
             cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            box-shadow: inset -2px -2px 0px 0px rgba(0, 0, 0, 0.3);
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+            image-rendering: pixelated;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                6px 6px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.2);
         }
 
         .send-btn:active {
-            box-shadow: inset 2px 2px 0px 0px rgba(0, 0, 0, 0.3);
-            transform: translate(2px, 2px);
+            transform: translateY(2px) translate(2px, 2px);
+            box-shadow:
+                2px 2px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(0,0,0,0.3);
         }
 
-        /* 小票容器 */
+        /* 小票容器 - 像素风格 */
         .receipt-container {
             display: flex;
             flex-direction: column;
@@ -272,17 +485,23 @@
         }
 
         .receipt-title {
-            font-size: 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 10px;
             color: var(--pixel-text-secondary);
             margin-bottom: 10px;
             text-transform: uppercase;
+            text-shadow: 2px 2px 0 var(--pixel-border);
         }
 
         .receipt-wrapper {
             width: 100%;
             height: 500px;
-            border: 3px solid var(--pixel-border);
-            background: rgba(0, 0, 0, 0.2);
+            border: 4px solid var(--pixel-border);
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow:
+                inset 4px 4px 0 rgba(0,0,0,0.4),
+                4px 4px 0 var(--pixel-shadow);
+            position: relative;
         }
 
         #receipt-canvas-container {
@@ -319,67 +538,167 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--pixel-btn-bg);
         }
+
+        /* ========================================
+           加载界面 - 渐变过渡效果
+           ======================================== */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #29adff 0%, #1d2b53 50%, #0d1530 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
+            visibility: visible;
+        }
+
+        #loading-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #loading-animation-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .loading-content {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 10;
+        }
+
+        .loading-text {
+            color: var(--pixel-text-primary);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .loading-bar-container {
+            width: 300px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 3px solid #000;
+            margin-top: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00e436 0%, #00ff66 50%, #00e436 100%);
+            border: 2px solid #000;
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+
+        .loading-tip {
+            color: var(--pixel-text-secondary);
+            font-size: 11px;
+            margin-top: 15px;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
+    <!-- 加载界面 -->
+    <div id="loading-overlay">
+        <div id="loading-animation-container"></div>
+        <div class="loading-content">
+            <div class="loading-text">正在加载聊天室...</div>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loading-bar"></div>
+            </div>
+            <div class="loading-tip" id="loading-tip">初始化 3D 引擎...</div>
+        </div>
+    </div>
     <div class="container">
-        <div class="pixel-panel">
-            <nav class="navbar">
-                <h1>💬 聊天室</h1>
-                <div class="user-info">
-                    <span>欢迎，{{ username }}</span>
-                    <a href="/logout" class="logout-btn">退出</a>
+        <div class="pixel-panel fall-element" id="main-panel">
+            <nav class="navbar fall-element">
+                <h1 class="fall-element">💬 聊天室</h1>
+                <div class="user-info fall-element">
+                    <span class="fall-element">欢迎，{{ username }}</span>
+                    <a href="/logout" class="logout-btn fall-element">退出</a>
                 </div>
             </nav>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                        <div class="pixel-message {{ category }}">{{ message }}</div>
+                        <div class="pixel-message fall-element {{ category }}">{{ message }}</div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
 
-            <div class="chat-layout">
-                <div class="chat-main">
-                    <div class="room-tabs">
-                        <button class="room-tab active" data-room="general">🏠 公共频道</button>
-                        <button class="room-tab" data-room="study">📚 学习交流</button>
-                        <button class="room-tab" data-room="random">💧 水聊专区</button>
+            <div class="chat-layout fall-element">
+                <div class="chat-main" data-module="chat">
+                    <div class="room-tabs fall-element">
+                        <button class="room-tab active fall-element" data-room="general">🏠 公共频道</button>
+                        <button class="room-tab fall-element" data-room="study">📚 学习交流</button>
+                        <button class="room-tab fall-element" data-room="random">💧 水聊专区</button>
                     </div>
 
-                    <div class="chat-messages" id="chat-messages">
+                    <div class="chat-messages fall-element" id="chat-messages">
                         {% for msg in messages %}
-                        <div class="chat-message" data-room="general">
+                        <div class="chat-message fall-element" data-room="general">
                             <div class="meta">
-                                <span class="username">{{ msg.username }}</span>
-                                <span class="time">{{ msg.timestamp.strftime('%H:%M:%S') }}</span>
+                                <span class="username fall-element">{{ msg.username }}</span>
+                                <span class="time fall-element">{{ msg.timestamp.strftime('%H:%M:%S') }}</span>
                             </div>
-                            <div class="text">{{ msg.message }}</div>
+                            <div class="text fall-element">{{ msg.message }}</div>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <div class="chat-input-area">
-                        <label class="anonymous-label">
+                    <div class="chat-input-area fall-element">
+                        <label class="anonymous-label fall-element">
                             <input type="checkbox" id="anonymous-toggle">
                             匿名发言
                         </label>
-                        <textarea id="message-input" placeholder="输入消息..."></textarea>
-                        <button class="send-btn" id="send-btn">发送</button>
+                        <textarea class="fall-element" id="message-input" placeholder="输入消息..."></textarea>
+                        <button class="send-btn fall-element" id="send-btn">发送</button>
                     </div>
                 </div>
 
-                <div class="receipt-container">
-                    <div class="receipt-title">📊 实时统计</div>
-                    <div class="receipt-wrapper" id="receipt-wrapper">
+                <div class="receipt-container" data-module="receipt">
+                    <div class="receipt-title fall-element">📊 实时统计</div>
+                    <div class="receipt-wrapper fall-element" id="receipt-wrapper">
                         <div id="receipt-canvas-container"></div>
-                        <div class="receipt-ui-layer">🖱️ 悬浮：扰动 | ✋ 拖拽：拉扯</div>
+                        <div class="receipt-ui-layer fall-element">🖱️ 悬浮：扰动 | ✋ 拖拽：拉扯</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- 坠落控制按钮 -->
+    <button class="fall-control-btn" id="fall-toggle-btn" onclick="FallApp.toggleFall()">
+        💥 坠落 💥
+    </button>
 
     <div id="online-count-display" style="display:none">{{ online_users|length }}</div>
     <div id="message-count-display" style="display:none">{{ messages|length }}</div>
@@ -388,18 +707,609 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // ==========================================
+        // 坠落动画模块 - 一键坠落 + 复位
+        // ==========================================
+        const FallApp = {
+            isFalling: false,
+            elements: [],
+            originalStyles: new Map(),
+
+            init() {
+                // 记录所有坠落元素（包括卡片、按钮、文字等独立视觉元素）
+                this.elements = document.querySelectorAll('.fall-element');
+                this.saveOriginalStyles();
+            },
+
+            saveOriginalStyles() {
+                this.elements.forEach((el, index) => {
+                    const style = {
+                        transform: el.style.transform,
+                        transition: el.style.transition,
+                        opacity: el.style.opacity
+                    };
+                    this.originalStyles.set(index, style);
+                });
+            },
+
+            toggleFall() {
+                if (this.isFalling) {
+                    this.reset();
+                } else {
+                    this.fall();
+                }
+            },
+
+            fall() {
+                this.isFalling = true;
+                const btn = document.getElementById('fall-toggle-btn');
+                btn.textContent = '🔄 拉回原位 🔄';
+                btn.classList.add('falling');
+
+                this.elements.forEach((el, index) => {
+                    // 生成随机参数
+                    const duration = 1.5 + Math.random() * 1.5; // 1.5-3s
+                    const delay = index * 0.05; // 每个元素延迟 0.05s，更紧凑
+                    const offsetX = (Math.random() - 0.5) * 400; // -200px 到 200px
+                    const rotate = (Math.random() - 0.5) * 720; // -360 度到 360 度
+                    const bounce = Math.random() > 0.5 ? 1 : -1;
+
+                    // 设置 CSS 变量
+                    el.style.setProperty('--fall-duration', duration + 's');
+                    el.style.setProperty('--fall-delay', delay + 's');
+                    el.style.setProperty('--fall-offset-x', offsetX + 'px');
+                    el.style.setProperty('--fall-rotate', rotate + 'deg');
+                    el.style.setProperty('--fall-bounce', bounce);
+
+                    // 添加坠落类
+                    el.classList.add('falling');
+                    el.classList.remove('resetting');
+                });
+
+                // 坠落完成后允许复位
+                setTimeout(() => {
+                    btn.disabled = false;
+                }, 3000);
+            },
+
+            reset() {
+                this.isFalling = false;
+                const btn = document.getElementById('fall-toggle-btn');
+                btn.textContent = '💥 坠落 💥';
+                btn.classList.remove('falling');
+
+                this.elements.forEach((el, index) => {
+                    // 移除坠落类，添加复位类
+                    el.classList.remove('falling');
+                    el.classList.add('resetting');
+
+                    // 复位动画完成后清理
+                    setTimeout(() => {
+                        el.classList.remove('resetting');
+                        // 清除内联样式
+                        el.style.removeProperty('--fall-duration');
+                        el.style.removeProperty('--fall-delay');
+                        el.style.removeProperty('--fall-offset-x');
+                        el.style.removeProperty('--fall-rotate');
+                        el.style.removeProperty('--fall-bounce');
+                    }, 800);
+                });
+            }
+        };
+
+        // ==========================================
+        // 加载界面模块 - SVG Emoji 冲击波 + 渐变过渡
+        // ==========================================
+        const LoadingApp = {
+            overlay: null,
+            loadingBar: null,
+            loadingTip: null,
+            isLoaded: false,
+
+            init() {
+                this.overlay = document.getElementById('loading-overlay');
+                this.loadingBar = document.getElementById('loading-bar');
+                this.loadingTip = document.getElementById('loading-tip');
+                this.createSVGAnimation();
+                this.simulateLoading();
+            },
+
+            createSVGAnimation() {
+                const container = document.getElementById('loading-animation-container');
+                container.innerHTML = `
+                    <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; background: black;">
+                        <defs>
+                            <!-- 迷幻径向渐变背景 -->
+                            <radialGradient id="bgPulse" cx="400" cy="300" r="500" fx="400" fy="300">
+                                <stop offset="0%" stop-color="#4b0082" />
+                                <stop offset="30%" stop-color="#2e0047" />
+                                <stop offset="70%" stop-color="#0a0010" />
+                                <stop offset="100%" stop-color="#000000" />
+                                <animate attributeName="fx" values="400;500;300;400" dur="8s" repeatCount="indefinite" />
+                                <animate attributeName="fy" values="300;200;400;300" dur="7s" repeatCount="indefinite" />
+                            </radialGradient>
+
+                            <!-- 滤镜 1：高频发光 -->
+                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur1" />
+                                <feMerge>
+                                    <feMergeNode in="blur1" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+
+                            <!-- 滤镜 2：扭曲 -->
+                            <filter id="distort" x="-100%" y="-100%" width="300%" height="300%">
+                                <feTurbulence baseFrequency="0.05 0.1" numOctaves="2" seed="2" result="turb" />
+                                <feDisplacementMap in="SourceGraphic" in2="turb" scale="30" xChannelSelector="R" yChannelSelector="G" />
+                            </filter>
+
+                            <!-- 滤镜 3：频闪 -->
+                            <filter id="strobe" x="-20%" y="-20%" width="140%" height="140%">
+                                <feColorMatrix type="matrix" values="-1 0 0 0 1 0 -1 0 0 1 0 0 -1 0 1 0 0 0 1 0" />
+                            </filter>
+
+                            <style>
+                                .emoji-base {
+                                    text-anchor: middle;
+                                    dominant-baseline: middle;
+                                    transform-origin: center;
+                                    transform-box: fill-box;
+                                    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+                                }
+                                @keyframes crazySpin {
+                                    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+                                    100% { transform: translate(0, 0) rotate(720deg) scale(1.5); }
+                                }
+                                @keyframes insaneFlip {
+                                    0% { transform: translate(0, 0) rotate(0deg) scaleX(1) scaleY(1); }
+                                    100% { transform: translate(0, 0) rotate(-720deg) scaleX(-1) scaleY(1); }
+                                }
+                                @keyframes warpZone {
+                                    0% { transform: translate(0, 0) scale(1); filter: hue-rotate(0deg); }
+                                    100% { transform: translate(0, 0) scale(1.3); filter: hue-rotate(360deg); }
+                                }
+                                @keyframes glitchOut {
+                                    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+                                    50% { transform: translate(20px, -20px) scale(1.1); opacity: 0.7; }
+                                    100% { transform: translate(0, 0) scale(1); opacity: 1; }
+                                }
+                            </style>
+                        </defs>
+
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="800" height="600" fill="url(#bgPulse)" />
+                        <rect x="0" y="0" width="800" height="600" fill="#000" opacity="0.3">
+                            <animate attributeName="opacity" values="0.2;0.5;0.1;0.6;0.2" dur="0.8s" repeatCount="indefinite" />
+                        </rect>
+
+                        <!-- Emoji 冲击波 -->
+                        <text class="emoji-base" x="120" y="120" font-size="95" style="animation: crazySpin 3.2s infinite alternate; filter: url(#glow)">🤯</text>
+                        <text class="emoji-base" x="680" y="150" font-size="110" style="animation: insaneFlip 2.9s infinite; filter: url(#distort)">👾</text>
+                        <text class="emoji-base" x="220" y="480" font-size="140" style="animation: warpZone 3.7s infinite; filter: url(#glow)">💀</text>
+                        <text class="emoji-base" x="570" y="520" font-size="80" style="animation: glitchOut 2.4s infinite">🤡</text>
+                        <text class="emoji-base" x="400" y="80" font-size="130" style="animation: crazySpin 4.1s infinite; filter: url(#distort)">👹</text>
+                        <text class="emoji-base" x="300" y="300" font-size="170" style="animation: insaneFlip 3.5s infinite; filter: url(#glow)">😱</text>
+                        <text class="emoji-base" x="500" y="200" font-size="90" style="animation: warpZone 2.8s infinite; filter: url(#strobe)">🤬</text>
+                        <text class="emoji-base" x="180" y="350" font-size="105" style="animation: glitchOut 3.9s infinite">🥶</text>
+                        <text class="emoji-base" x="640" y="400" font-size="125" style="animation: crazySpin 3.3s infinite">👻</text>
+                        <text class="emoji-base" x="70" y="200" font-size="85" style="animation: insaneFlip 2.5s infinite; filter: url(#distort)">🤢</text>
+                        <text class="emoji-base" x="730" y="550" font-size="115" style="animation: warpZone 4.5s infinite; filter: url(#glow)">👽</text>
+                        <text class="emoji-base" x="250" y="550" font-size="95" style="animation: glitchOut 3.0s infinite; filter: url(#strobe)">🤖</text>
+                        <text class="emoji-base" x="450" y="430" font-size="155" style="animation: crazySpin 5.2s infinite; filter: url(#distort)">👺</text>
+                        <text class="emoji-base" x="400" y="300" font-size="250" style="animation: crazySpin 1.9s infinite; filter: url(#glow); opacity:0.9">😵</text>
+                        <text class="emoji-base" x="30" y="30" font-size="50" style="animation: glitchOut 2.2s infinite">😤</text>
+                        <text class="emoji-base" x="760" y="40" font-size="60" style="animation: warpZone 2.6s infinite; filter: url(#glow)">💢</text>
+                        <text class="emoji-base" x="20" y="590" font-size="65" style="animation: insaneFlip 4.0s infinite">💥</text>
+                        <text class="emoji-base" x="500" y="500" font-size="180" style="animation: warpZone 2.0s infinite; filter: url(#glow)">💥</text>
+                        <text class="emoji-base" x="300" y="200" font-size="190" style="animation: insaneFlip 1.8s infinite; filter: url(#strobe)">🔥</text>
+                    </svg>
+                `;
+            },
+
+            simulateLoading() {
+                const tips = [
+                    '初始化 3D 引擎...',
+                    '加载聊天消息...',
+                    '连接 WebSocket...',
+                    '同步在线用户...',
+                    '准备就绪!'
+                ];
+
+                let progress = 0;
+                let tipIndex = 0;
+
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15 + 5;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        setTimeout(() => this.hide(), 500);
+                    }
+
+                    this.loadingBar.style.width = progress + '%';
+
+                    const newTipIndex = Math.floor(progress / 20);
+                    if (newTipIndex !== tipIndex && newTipIndex < tips.length) {
+                        tipIndex = newTipIndex;
+                        this.loadingTip.textContent = tips[tipIndex];
+                    }
+                }, 200);
+            },
+
+            hide() {
+                if (this.isLoaded) return;
+                this.isLoaded = true;
+                this.overlay.classList.add('hidden');
+            }
+        };
+
+        // ==========================================
+        // 3D 小票模块 - 实时统计
+        // ==========================================
+        const ReceiptApp = {
+            currentOnline: 0,
+            currentMessages: 0,
+            particles: [],
+            constraints: [],
+            mesh: null,
+            geometry: null,
+            material: null,
+            draggedParticle: null,
+            isHovering: false,
+            hoverPos: null,
+            scene: null,
+            camera: null,
+            renderer: null,
+
+            init(onlineCount, messageCount) {
+                this.currentOnline = onlineCount;
+                this.currentMessages = messageCount;
+                this.create3DScene();
+                this.startUpdates();
+            },
+
+            create3DScene() {
+                const container = document.getElementById('receipt-canvas-container');
+                if (!container) return;
+
+                const SEGS_X = 12, SEGS_Y = 24;
+                const PAPER_WIDTH = 220, PAPER_HEIGHT = 480;
+
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 3000);
+                this.camera.position.set(0, 0, 600);
+
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(this.renderer.domElement);
+
+                this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(200, 300, 400);
+                dirLight.castShadow = true;
+                this.scene.add(dirLight);
+
+                // 阴影平面
+                const shadowGeo = new THREE.PlaneGeometry(PAPER_WIDTH * 1.2, PAPER_HEIGHT * 1.2);
+                const shadowMat = new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+                const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
+                shadowPlane.position.y = -20;
+                shadowPlane.position.z = -30;
+                this.scene.add(shadowPlane);
+
+                this.material = new THREE.MeshStandardMaterial({
+                    map: this.createTexture(this.currentOnline, this.currentMessages),
+                    side: THREE.DoubleSide,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+
+                this.geometry = new THREE.PlaneGeometry(PAPER_WIDTH, PAPER_HEIGHT, SEGS_X, SEGS_Y);
+                this.mesh = new THREE.Mesh(this.geometry, this.material);
+                this.mesh.position.y = 50;
+                this.scene.add(this.mesh);
+
+                // 物理粒子
+                this.particles = [];
+                for (let y = 0; y <= SEGS_Y; y++) {
+                    for (let x = 0; x <= SEGS_X; x++) {
+                        const px = (x / SEGS_X - 0.5) * PAPER_WIDTH;
+                        const py = (1 - y / SEGS_Y) * PAPER_HEIGHT - PAPER_HEIGHT / 2;
+                        this.particles.push({
+                            position: new THREE.Vector3(px, py, 0),
+                            previous: new THREE.Vector3(px, py, 0),
+                            original: new THREE.Vector3(px, py, 0),
+                            isPinned: y === 0,
+                            isDragged: false
+                        });
+                    }
+                }
+
+                // 约束
+                this.constraints = [];
+                const idx = (x, y) => x + y * (SEGS_X + 1);
+                for (let y = 0; y <= SEGS_Y; y++) {
+                    for (let x = 0; x <= SEGS_X; x++) {
+                        if (x < SEGS_X) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y)], dist: PAPER_WIDTH/SEGS_X });
+                        if (y < SEGS_Y) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x,y+1)], dist: PAPER_HEIGHT/SEGS_Y });
+                        if (x < SEGS_X && y < SEGS_Y) {
+                            const d = Math.hypot(PAPER_WIDTH/SEGS_X, PAPER_HEIGHT/SEGS_Y);
+                            this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y+1)], dist: d });
+                            this.constraints.push({ p1: this.particles[idx(x+1,y)], p2: this.particles[idx(x,y+1)], dist: d });
+                        }
+                    }
+                }
+
+                this.setupInteraction();
+
+                const animate = () => {
+                    requestAnimationFrame(animate);
+                    this.simulate();
+                    this.renderer.render(this.scene, this.camera);
+                };
+                animate();
+
+                window.addEventListener('resize', () => {
+                    this.camera.aspect = container.clientWidth / container.clientHeight;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(container.clientWidth, container.clientHeight);
+                });
+            },
+
+            createTexture(online, messages) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 1024;
+                const ctx = canvas.getContext('2d');
+
+                ctx.fillStyle = '#f5f5dc';
+                ctx.fillRect(0, 0, 512, 1024);
+
+                for (let i = 0; i < 3000; i++) {
+                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.03})`;
+                    ctx.fillRect(Math.random() * 512, Math.random() * 1024, 2, 2);
+                }
+
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+                ctx.font = 'bold 56px monospace';
+                ctx.fillText('╔════════════════════════╗', 256, 70);
+                ctx.font = 'bold 48px monospace';
+                ctx.fillText('📊 实 时 统 计', 256, 140);
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, 190);
+
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 32px monospace';
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('zh-CN');
+                const timeStr = now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
+
+                let y = 260;
+                ctx.fillText('日  期', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(dateStr, 462, y);
+                y += 55;
+
+                ctx.textAlign = 'left';
+                ctx.fillText('时  间', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(timeStr, 462, y);
+                y += 55;
+
+                ctx.textAlign = 'center';
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
+                y += 50;
+
+                ctx.font = 'bold 42px monospace';
+                ctx.textAlign = 'left';
+                ctx.fillText('在 线 人 数', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#00aa00';
+                ctx.fillText(online + ' 人', 462, y);
+                y += 65;
+
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'left';
+                ctx.fillText('消 息 总 数', 50, y);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#0066ff';
+                ctx.fillText(messages + ' 条', 462, y);
+                y += 65;
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#000000';
+                ctx.font = '28px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
+                y += 50;
+
+                ctx.font = '24px monospace';
+                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y + 80);
+                ctx.font = '20px monospace';
+                ctx.fillText('感 谢 使 用 聊 天 室！', 256, y + 115);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.anisotropy = 16;
+                return texture;
+            },
+
+            simulate() {
+                const time = performance.now() * 0.002;
+                const gravity = new THREE.Vector3(0, -600, 0);
+                const damping = 0.95;
+
+                this.particles.forEach(p => {
+                    if (!p.isPinned && !p.isDragged) {
+                        p.position.add(gravity.clone().multiplyScalar(0.016 * 0.016));
+
+                        if (this.isHovering && this.hoverPos) {
+                            const dist = p.position.distanceTo(this.hoverPos);
+                            if (dist < 50) {
+                                const intensity = (50 - dist) / 50;
+                                const pushDir = p.position.clone().sub(this.hoverPos).normalize();
+                                pushDir.z -= 0.5;
+                                pushDir.normalize();
+                                p.position.add(pushDir.multiplyScalar(intensity * 1));
+                            }
+                        }
+
+                        const velocity = p.position.clone().sub(p.previous).multiplyScalar(damping);
+                        p.previous.copy(p.position);
+                        p.position.add(velocity);
+                    }
+                });
+
+                for (let i = 0; i < 5; i++) {
+                    this.constraints.forEach(c => {
+                        const diff = c.p2.position.clone().sub(c.p1.position);
+                        const dist = diff.length();
+                        if (dist === 0) return;
+                        const correction = (dist - c.dist) / dist;
+                        const halfCorr = diff.multiplyScalar(correction * 0.5);
+                        if (!c.p1.isPinned) c.p1.position.add(halfCorr);
+                        if (!c.p2.isPinned) c.p2.position.sub(halfCorr);
+                    });
+                }
+
+                const positions = this.geometry.attributes.position.array;
+                let idx = 0;
+                this.particles.forEach(p => {
+                    positions[idx++] = p.position.x;
+                    positions[idx++] = p.position.y;
+                    positions[idx++] = p.position.z;
+                });
+                this.geometry.attributes.position.needsUpdate = true;
+            },
+
+            setupInteraction() {
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+                let isMouseDown = false;
+
+                const getMousePos = (e) => {
+                    const rect = this.renderer.domElement.getBoundingClientRect();
+                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    raycaster.setFromCamera(mouse, this.camera);
+                };
+
+                this.renderer.domElement.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    getMousePos(e);
+                    const intersects = raycaster.intersectObject(this.mesh);
+                    if (intersects.length > 0) {
+                        const point = intersects[0].point.clone().sub(this.mesh.position);
+                        let minDst = Infinity;
+                        this.particles.forEach(p => {
+                            if (!p.isPinned) {
+                                const dst = p.position.distanceTo(point);
+                                if (dst < minDst) { minDst = dst; this.draggedParticle = p; }
+                            }
+                        });
+                        if (this.draggedParticle) {
+                            this.draggedParticle.isDragged = true;
+                        }
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mousemove', (e) => {
+                    getMousePos(e);
+                    if (isMouseDown && this.draggedParticle) {
+                        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+                        const target = new THREE.Vector3();
+                        raycaster.ray.intersectPlane(plane, target);
+                        this.draggedParticle.position.copy(target);
+                    } else {
+                        const intersects = raycaster.intersectObject(this.mesh);
+                        if (intersects.length > 0) {
+                            this.isHovering = true;
+                            this.hoverPos = intersects[0].point.clone().sub(this.mesh.position);
+                        } else {
+                            this.isHovering = false;
+                            this.hoverPos = null;
+                        }
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                    if (this.draggedParticle) {
+                        this.draggedParticle.isDragged = false;
+                        this.draggedParticle = null;
+                    }
+                });
+
+                this.renderer.domElement.addEventListener('mouseleave', () => {
+                    isMouseDown = false;
+                    this.isHovering = false;
+                    this.hoverPos = null;
+                    if (this.draggedParticle) {
+                        this.draggedParticle.isDragged = false;
+                        this.draggedParticle = null;
+                    }
+                });
+            },
+
+            updateTexture() {
+                if (this.material && this.material.map) {
+                    this.material.map.dispose();
+                }
+                this.material.map = this.createTexture(this.currentOnline, this.currentMessages);
+                this.material.needsUpdate = true;
+            },
+
+            startUpdates() {
+                setInterval(() => {
+                    fetch(window.location.href)
+                        .then(res => res.text())
+                        .then(html => {
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const onlineEl = doc.querySelector('#online-count-display');
+                            const msgEl = doc.querySelector('#message-count-display');
+                            const newOnline = onlineEl ? parseInt(onlineEl.textContent) || 0 : this.currentOnline;
+                            const newMsg = msgEl ? parseInt(msgEl.textContent) || 0 : this.currentMessages;
+                            if (newOnline !== this.currentOnline || newMsg !== this.currentMessages) {
+                                this.currentOnline = newOnline;
+                                this.currentMessages = newMsg;
+                                this.updateTexture();
+                            }
+                        })
+                        .catch(() => {});
+                }, 3000);
+
+                setInterval(() => {
+                    if (Math.random() > 0.6) {
+                        this.currentMessages++;
+                        this.updateTexture();
+                    }
+                }, 4000);
+            }
+        };
+
+        // ==========================================
         // 聊天室功能模块
         // ==========================================
         const ChatApp = {
             socket: null,
             currentRoom: 'general',
             elements: {},
+            heartbeatInterval: null,
 
             init() {
                 this.cacheElements();
                 this.initSocket();
                 this.bindEvents();
                 this.loadMessages();
+                this.startHeartbeat();
             },
 
             cacheElements() {
@@ -417,6 +1327,21 @@
 
                 this.socket.on('receive_message', (data) => this.handleNewMessage(data));
                 this.socket.on('receive_messages', (msgs) => this.handleLoadMessages(msgs));
+                this.socket.on('online_count', (data) => this.handleOnlineCount(data));
+            },
+
+            startHeartbeat() {
+                // 每 60 秒发送一次心跳
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.socket && this.socket.connected) {
+                        this.socket.emit('heartbeat');
+                    }
+                }, 60000);
+            },
+
+            handleOnlineCount(data) {
+                // 更新在线人数显示（如果需要）
+                console.log('在线人数:', data.count);
             },
 
             bindEvents() {
@@ -514,393 +1439,26 @@
         };
 
         // ==========================================
-        // 3D 小票模块 - 完整物理效果
-        // ==========================================
-        const ReceiptApp = {
-            currentOnline: 0,
-            currentMessages: 0,
-            particles: [],
-            constraints: [],
-            mesh: null,
-            geometry: null,
-            material: null,
-            draggedParticle: null,
-            isHovering: false,
-            hoverPos: null,
-            targetDragPos: null,
-            currentDragPos: null,
-            scene: null,
-            camera: null,
-            renderer: null,
-
-            init(onlineCount, messageCount) {
-                this.currentOnline = onlineCount;
-                this.currentMessages = messageCount;
-                this.targetDragPos = new THREE.Vector3();
-                this.currentDragPos = new THREE.Vector3();
-                this.create3DScene();
-                this.startUpdates();
-            },
-
-            create3DScene() {
-                const container = document.getElementById('receipt-canvas-container');
-                const SEGS_X = 12, SEGS_Y = 24;
-                const PAPER_WIDTH = 220, PAPER_HEIGHT = 480;
-
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 3000);
-                this.camera.position.set(0, 0, 600);
-
-                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                this.renderer.setSize(container.clientWidth, container.clientHeight);
-                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                container.appendChild(this.renderer.domElement);
-
-                this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-                dirLight.position.set(200, 300, 400);
-                dirLight.castShadow = true;
-                this.scene.add(dirLight);
-
-                // 添加阴影平面
-                const shadowGeo = new THREE.PlaneGeometry(PAPER_WIDTH * 1.2, PAPER_HEIGHT * 1.2);
-                const shadowMat = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.DoubleSide,
-                    depthWrite: false
-                });
-                const shadowPlane = new THREE.Mesh(shadowGeo, shadowMat);
-                shadowPlane.position.y = -20;
-                shadowPlane.position.z = -30;
-                this.scene.add(shadowPlane);
-
-                this.material = new THREE.MeshStandardMaterial({
-                    map: this.createTexture(this.currentOnline, this.currentMessages),
-                    side: THREE.DoubleSide,
-                    roughness: 0.8,
-                    metalness: 0.1
-                });
-
-                this.geometry = new THREE.PlaneGeometry(PAPER_WIDTH, PAPER_HEIGHT, SEGS_X, SEGS_Y);
-                this.mesh = new THREE.Mesh(this.geometry, this.material);
-                this.mesh.position.y = 50;
-                this.scene.add(this.mesh);
-
-                // 创建物理粒子
-                this.particles = [];
-                for (let y = 0; y <= SEGS_Y; y++) {
-                    for (let x = 0; x <= SEGS_X; x++) {
-                        const px = (x / SEGS_X - 0.5) * PAPER_WIDTH;
-                        const py = (1 - y / SEGS_Y) * PAPER_HEIGHT - PAPER_HEIGHT / 2;
-                        this.particles.push({
-                            position: new THREE.Vector3(px, py, 0),
-                            previous: new THREE.Vector3(px, py, 0),
-                            original: new THREE.Vector3(px, py, 0),
-                            isPinned: y === 0,
-                            isDragged: false
-                        });
-                    }
-                }
-
-                // 创建约束
-                this.constraints = [];
-                const idx = (x, y) => x + y * (SEGS_X + 1);
-                for (let y = 0; y <= SEGS_Y; y++) {
-                    for (let x = 0; x <= SEGS_X; x++) {
-                        if (x < SEGS_X) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y)], dist: PAPER_WIDTH/SEGS_X });
-                        if (y < SEGS_Y) this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x,y+1)], dist: PAPER_HEIGHT/SEGS_Y });
-                        if (x < SEGS_X && y < SEGS_Y) {
-                            const d = Math.hypot(PAPER_WIDTH/SEGS_X, PAPER_HEIGHT/SEGS_Y);
-                            this.constraints.push({ p1: this.particles[idx(x,y)], p2: this.particles[idx(x+1,y+1)], dist: d });
-                            this.constraints.push({ p1: this.particles[idx(x+1,y)], p2: this.particles[idx(x,y+1)], dist: d });
-                        }
-                    }
-                }
-
-                this.setupInteraction();
-
-                const animate = () => {
-                    requestAnimationFrame(animate);
-                    this.simulate();
-                    this.renderer.render(this.scene, this.camera);
-                };
-                animate();
-
-                window.addEventListener('resize', () => {
-                    this.camera.aspect = container.clientWidth / container.clientHeight;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(container.clientWidth, container.clientHeight);
-                });
-            },
-
-            createTexture(online, messages) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 512;
-                canvas.height = 1024;
-                const ctx = canvas.getContext('2d');
-
-                // 底色
-                ctx.fillStyle = '#f5f5dc';
-                ctx.fillRect(0, 0, 512, 1024);
-
-                // 噪点
-                for (let i = 0; i < 3000; i++) {
-                    ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.03})`;
-                    ctx.fillRect(Math.random() * 512, Math.random() * 1024, 2, 2);
-                }
-
-                // 标题 - 大字体
-                ctx.fillStyle = '#000000';
-                ctx.textAlign = 'center';
-
-                ctx.font = 'bold 56px monospace';
-                ctx.fillText('╔════════════════════════╗', 256, 70);
-
-                ctx.font = 'bold 48px monospace';
-                ctx.fillText('📊 实 时 统 计', 256, 140);
-
-                ctx.font = '28px monospace';
-                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, 190);
-
-                // 内容 - 大字体
-                ctx.textAlign = 'left';
-                ctx.font = 'bold 32px monospace';
-
-                const now = new Date();
-                const dateStr = now.toLocaleDateString('zh-CN');
-                const timeStr = now.toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'});
-
-                let y = 260;
-
-                // 日期时间
-                ctx.fillText('日  期', 50, y);
-                ctx.textAlign = 'right';
-                ctx.fillText(dateStr, 462, y);
-                y += 55;
-
-                ctx.textAlign = 'left';
-                ctx.fillText('时  间', 50, y);
-                ctx.textAlign = 'right';
-                ctx.fillText(timeStr, 462, y);
-                y += 55;
-
-                ctx.textAlign = 'center';
-                ctx.font = '28px monospace';
-                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
-                y += 50;
-
-                // 核心数据 - 超大字体
-                ctx.font = 'bold 42px monospace';
-                ctx.textAlign = 'left';
-                ctx.fillText('在 线 人 数', 50, y);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#00aa00';
-                ctx.fillText(online + ' 人', 462, y);
-                y += 65;
-
-                ctx.fillStyle = '#000000';
-                ctx.textAlign = 'left';
-                ctx.fillText('消 息 总 数', 50, y);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#0066ff';
-                ctx.fillText(messages + ' 条', 462, y);
-                y += 65;
-
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#000000';
-                ctx.font = '28px monospace';
-                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y);
-                y += 50;
-
-                // 底部
-                ctx.font = '24px monospace';
-                ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━', 256, y + 80);
-                ctx.font = '20px monospace';
-                ctx.fillText('感 谢 使 用 聊 天 室！', 256, y + 115);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.anisotropy = 16;
-                return texture;
-            },
-
-            simulate() {
-                const time = performance.now() * 0.002;
-                const gravity = new THREE.Vector3(0, -600, 0);
-                const damping = 0.95;
-                const dt = 0.016;
-
-                // 应用物理
-                this.particles.forEach(p => {
-                    if (!p.isPinned && !p.isDragged) {
-                        // 重力
-                        p.position.add(gravity.clone().multiplyScalar(dt * dt));
-
-                        // 鼠标悬浮扰动 - 轻微
-                        if (this.isHovering && this.hoverPos) {
-                            const dist = p.position.distanceTo(this.hoverPos);
-                            if (dist < 50) {
-                                const intensity = (50 - dist) / 50;
-                                const pushDir = p.position.clone().sub(this.hoverPos).normalize();
-                                pushDir.z -= 0.5;
-                                pushDir.normalize();
-                                p.position.add(pushDir.multiplyScalar(intensity * 1));
-                            }
-                        }
-
-                        // Verlet 积分
-                        const velocity = p.position.clone().sub(p.previous).multiplyScalar(damping);
-                        p.previous.copy(p.position);
-                        p.position.add(velocity);
-                    }
-                });
-
-                // 约束求解
-                for (let i = 0; i < 5; i++) {
-                    this.constraints.forEach(c => {
-                        const diff = c.p2.position.clone().sub(c.p1.position);
-                        const dist = diff.length();
-                        if (dist === 0) return;
-                        const correction = (dist - c.dist) / dist;
-                        const halfCorr = diff.multiplyScalar(correction * 0.5);
-                        if (!c.p1.isPinned) c.p1.position.add(halfCorr);
-                        if (!c.p2.isPinned) c.p2.position.sub(halfCorr);
-                    });
-                }
-
-                // 更新网格顶点
-                const positions = this.geometry.attributes.position.array;
-                let idx = 0;
-                this.particles.forEach(p => {
-                    positions[idx++] = p.position.x;
-                    positions[idx++] = p.position.y;
-                    positions[idx++] = p.position.z;
-                });
-                this.geometry.attributes.position.needsUpdate = true;
-            },
-
-            setupInteraction() {
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2();
-                let isMouseDown = false;
-
-                const getMousePos = (e) => {
-                    const rect = this.renderer.domElement.getBoundingClientRect();
-                    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-                    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-                    raycaster.setFromCamera(mouse, this.camera);
-                };
-
-                this.renderer.domElement.addEventListener('mousedown', (e) => {
-                    isMouseDown = true;
-                    getMousePos(e);
-                    const intersects = raycaster.intersectObject(this.mesh);
-                    if (intersects.length > 0) {
-                        const point = intersects[0].point.clone().sub(this.mesh.position);
-                        let minDst = Infinity;
-                        this.particles.forEach(p => {
-                            if (!p.isPinned) {
-                                const dst = p.position.distanceTo(point);
-                                if (dst < minDst) { minDst = dst; this.draggedParticle = p; }
-                            }
-                        });
-                        if (this.draggedParticle) {
-                            this.draggedParticle.isDragged = true;
-                        }
-                    }
-                });
-
-                this.renderer.domElement.addEventListener('mousemove', (e) => {
-                    getMousePos(e);
-
-                    if (isMouseDown && this.draggedParticle) {
-                        // 拖拽 - 放大移动距离
-                        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-                        const target = new THREE.Vector3();
-                        raycaster.ray.intersectPlane(plane, target);
-                        this.draggedParticle.position.copy(target);
-                    } else {
-                        const intersects = raycaster.intersectObject(this.mesh);
-                        if (intersects.length > 0) {
-                            this.isHovering = true;
-                            this.hoverPos = intersects[0].point.clone().sub(this.mesh.position);
-                        } else {
-                            this.isHovering = false;
-                            this.hoverPos = null;
-                        }
-                    }
-                });
-
-                this.renderer.domElement.addEventListener('mouseup', () => {
-                    isMouseDown = false;
-                    if (this.draggedParticle) {
-                        this.draggedParticle.isDragged = false;
-                        this.draggedParticle = null;
-                    }
-                });
-
-                this.renderer.domElement.addEventListener('mouseleave', () => {
-                    isMouseDown = false;
-                    this.isHovering = false;
-                    this.hoverPos = null;
-                    if (this.draggedParticle) {
-                        this.draggedParticle.isDragged = false;
-                        this.draggedParticle = null;
-                    }
-                });
-            },
-
-            updateTexture() {
-                if (this.material && this.material.map) {
-                    this.material.map.dispose();
-                }
-                this.material.map = this.createTexture(this.currentOnline, this.currentMessages);
-                this.material.needsUpdate = true;
-            },
-
-            startUpdates() {
-                // 定期更新
-                setInterval(() => {
-                    fetch(window.location.href)
-                        .then(res => res.text())
-                        .then(html => {
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(html, 'text/html');
-                            const onlineEl = doc.querySelector('#online-count-display');
-                            const msgEl = doc.querySelector('#message-count-display');
-
-                            const newOnline = onlineEl ? parseInt(onlineEl.textContent) || 0 : this.currentOnline;
-                            const newMsg = msgEl ? parseInt(msgEl.textContent) || 0 : this.currentMessages;
-
-                            if (newOnline !== this.currentOnline || newMsg !== this.currentMessages) {
-                                this.currentOnline = newOnline;
-                                this.currentMessages = newMsg;
-                                this.updateTexture();
-                            }
-                        })
-                        .catch(() => {});
-                }, 3000);
-
-                // 模拟消息增长
-                setInterval(() => {
-                    if (Math.random() > 0.6) {
-                        this.currentMessages++;
-                        this.updateTexture();
-                    }
-                }, 4000);
-            }
-        };
-
-        // ==========================================
         // 初始化应用
         // ==========================================
         document.addEventListener('DOMContentLoaded', () => {
-            ChatApp.init();
-            ReceiptApp.init(
-                parseInt("{{ online_users|length }}") || 0,
-                parseInt("{{ messages|length }}") || 0
-            );
+            // 初始化坠落动画
+            FallApp.init();
+
+            // 先启动加载界面
+            LoadingApp.init();
+
+            // 等待加载完成后初始化聊天室
+            const checkLoaded = setInterval(() => {
+                if (LoadingApp.isLoaded) {
+                    clearInterval(checkLoaded);
+                    ChatApp.init();
+                    ReceiptApp.init(
+                        parseInt("{{ online_users|length }}") || 0,
+                        parseInt("{{ messages|length }}") || 0
+                    );
+                }
+            }, 100);
         });
     </script>
 </body>
