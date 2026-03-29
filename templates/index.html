@@ -1808,8 +1808,18 @@
             init(onlineCount, messageCount) {
                 this.currentOnline = onlineCount;
                 this.currentMessages = messageCount;
+                // 注册全局实例，方便 ChatApp 调用
+                window.ReceiptAppInstance = this;
                 this.create3DScene();
                 this.startUpdates();
+            },
+
+            // 从 WebSocket 更新在线人数
+            updateFromSocket(count) {
+                if (count !== this.currentOnline) {
+                    this.currentOnline = count;
+                    this.updateTexture();
+                }
             },
 
             create3DScene() {
@@ -2172,6 +2182,11 @@
                 this.socket.on('receive_message', (data) => this.handleNewMessage(data));
                 this.socket.on('receive_messages', (msgs) => this.handleLoadMessages(msgs));
                 this.socket.on('online_count', (data) => this.handleOnlineCount(data));
+
+                // 连接成功后请求一次在线人数
+                this.socket.on('connect', () => {
+                    this.socket.emit('get_online_count');
+                });
             },
 
             startHeartbeat() {
@@ -2179,13 +2194,24 @@
                 this.heartbeatInterval = setInterval(() => {
                     if (this.socket && this.socket.connected) {
                         this.socket.emit('heartbeat');
+                        // 心跳时也请求更新在线人数
+                        this.socket.emit('get_online_count');
                     }
                 }, 60000);
             },
 
             handleOnlineCount(data) {
-                // 更新在线人数显示（如果需要）
+                // 更新在线人数显示
                 console.log('在线人数:', data.count);
+                // 更新隐藏元素供小票读取
+                const countDisplay = document.getElementById('online-count-display');
+                if (countDisplay) {
+                    countDisplay.textContent = data.count;
+                }
+                // 直接触发小票更新（如果存在）
+                if (window.ReceiptAppInstance) {
+                    window.ReceiptAppInstance.updateFromSocket(data.count);
+                }
             },
 
             bindEvents() {

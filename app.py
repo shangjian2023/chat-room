@@ -146,10 +146,14 @@ def get_online_users_count():
     """获取在线用户数量（5 分钟内有活动的）"""
     from datetime import timedelta
     threshold = datetime.now() - timedelta(minutes=5)
-    return OnlineUser.query.filter(
+    # 查询所有符合条件的记录，然后用 Python 去重（兼容 SQLite）
+    records = OnlineUser.query.filter(
         OnlineUser.is_active == True,
         OnlineUser.last_active >= threshold
-    ).distinct(OnlineUser.user_id).count()
+    ).all()
+    # 使用 set 去重 user_id
+    unique_users = set(r.user_id for r in records)
+    return len(unique_users)
 
 def get_online_users_list():
     """获取在线用户列表"""
@@ -267,6 +271,12 @@ def handle_message(data):
 
 @socketio.on('get_online_count')
 def handle_online_count():
+    count = get_online_users_count()
+    emit('online_count', {'count': count})
+
+@socketio.on('get_online_count')
+def handle_online_count():
+    """获取在线人数"""
     count = get_online_users_count()
     emit('online_count', {'count': count})
 
