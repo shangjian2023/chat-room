@@ -5,7 +5,12 @@
       "Bash(git push:*)",
       "Bash(python:*)",
       "Bash(sqlite3:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(for i:*)",
+      "Bash(do echo:*)",
+      "Bash(break)",
+      "Bash(done)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

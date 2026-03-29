@@ -338,6 +338,125 @@
             flex-wrap: wrap;
         }
 
+        /* ========================================
+           外部链接按钮样式
+           ======================================== */
+        .external-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .external-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            border: 4px solid var(--pixel-border);
+            text-decoration: none;
+            box-shadow:
+                4px 4px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.15);
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .external-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.4s ease;
+        }
+
+        .external-btn:hover::before {
+            left: 100%;
+        }
+
+        .external-btn:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                6px 6px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(255,255,255,0.15);
+        }
+
+        .external-btn:active {
+            transform: translateY(1px);
+            box-shadow:
+                2px 2px 0 var(--pixel-shadow),
+                inset 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn-icon {
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.3));
+        }
+
+        .btn-text {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .btn-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-desc {
+            font-family: 'VT323', monospace;
+            font-size: 11px;
+            opacity: 0.85;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-arrow {
+            font-size: 18px;
+            opacity: 0.7;
+            transition: transform 0.15s ease;
+        }
+
+        .external-btn:hover .btn-arrow {
+            transform: translate(3px, -3px);
+        }
+
+        /* 头歌课程平台 - 蓝色主题 */
+        .educoder-btn {
+            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
+            color: #ffffff;
+        }
+
+        .educoder-btn .btn-title {
+            color: #e6f4ff;
+        }
+
+        .educoder-btn .btn-desc {
+            color: #b3d9ff;
+        }
+
+        /* 科大图书馆 - 绿色主题 */
+        .library-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+            color: #ffffff;
+        }
+
+        .library-btn .btn-title {
+            color: #dcfce7;
+        }
+
+        .library-btn .btn-desc {
+            color: #86efac;
+        }
+
         .course-tab {
             padding: 10px 20px;
             background: linear-gradient(180deg, #00e436 0%, #00bb29 100%);
@@ -880,8 +999,26 @@
                 max-width: 100%;
             }
 
-            /* 主面板 */
-            .pixel-panel {
+            /* 外部链接按钮 - 平板/手机端变为单列 */
+            .external-links {
+                grid-template-columns: 1fr;
+            }
+
+            .external-btn {
+                padding: 14px 16px;
+            }
+
+            .btn-icon {
+                font-size: 24px;
+            }
+
+            .btn-title {
+                font-size: 10px;
+            }
+
+            .btn-desc {
+                font-size: 10px;
+            }
                 padding: 15px;
                 border-width: 3px;
                 box-shadow:
@@ -1242,6 +1379,26 @@
                 <!-- 左侧：课程平台 -->
                 <div class="course-platform fall-element" data-module="course">
                     <h2 style="font-family: 'Press Start 2P', cursive; font-size: 14px; margin-bottom: 15px; color: var(--pixel-acc-primary);">📚 课程平台</h2>
+
+                    <!-- 外部链接入口 -->
+                    <div class="external-links fall-element">
+                        <a href="https://www.educoder.net/" target="_blank" class="external-btn educoder-btn">
+                            <span class="btn-icon">🎓</span>
+                            <span class="btn-text">
+                                <span class="btn-title">头歌课程平台</span>
+                                <span class="btn-desc">Educoder 在线编程学习</span>
+                            </span>
+                            <span class="btn-arrow">↗</span>
+                        </a>
+                        <a href="https://library.nudt.edu.cn/" target="_blank" class="external-btn library-btn">
+                            <span class="btn-icon">📖</span>
+                            <span class="btn-text">
+                                <span class="btn-title">科大图书馆</span>
+                                <span class="btn-desc">NUDT 图书馆资源</span>
+                            </span>
+                            <span class="btn-arrow">↗</span>
+                        </a>
+                    </div>
 
                     <!-- 分类标签 -->
                     <div class="course-tabs fall-element">
